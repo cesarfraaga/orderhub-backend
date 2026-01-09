@@ -22,8 +22,8 @@ public class ClientController {
     }
 
     @PutMapping("/update")
-    public ResponseEntity<ClientDto> update(@RequestBody ClientDto clientDto) { //Em REST, preciso identificar o recurso que vai ser att
-        return ResponseEntity.status(HttpStatus.OK).body(clientService.updateClient(clientDto)); //ponto de melhoria: colocar id no endpoint
+    public ResponseEntity<ClientDto> update(@RequestBody Long id, ClientDto clientDto) { //Em REST, preciso identificar o recurso que vai ser att
+        return ResponseEntity.status(HttpStatus.OK).body(clientService.updateClient(id, clientDto)); //ponto de melhoria: colocar id no endpoint
     }
 
     @GetMapping("/id")
