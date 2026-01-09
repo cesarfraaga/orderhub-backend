@@ -82,17 +82,21 @@ public class ClientService {
     private static void validateCpf(String cpf) {
         int lengthCPF = 11;
 
-        if (cpf.isBlank()) { //validate cpf with only numbers
+        if (cpf.isBlank()) { //create a constant class to text
             throw new NullPointerException("Client cpf cannot be null or empty");
         }
 
         if (cpf.length() != lengthCPF) {
             throw new IllegalArgumentException("The CPF must have 11 digits.");
         }
+
+        if (!cpf.matches("^[0-9]+$")) {
+            throw new IllegalArgumentException("Only numbers allowed.");
+        }
     }
 
     private static void validateName(String name) { //validate with only basic characters
-        int minLengthName = 2;
+        int minLengthName = 2; //constant
         int maxLengthName = 50;
 
         if (name == null || name.isBlank()) {
@@ -101,6 +105,10 @@ public class ClientService {
 
         if (name.length() < minLengthName || name.length() > maxLengthName) {
             throw new IllegalArgumentException("Client name cannot be less than 2 or more than 50 characters");
+        }
+
+        if (name.matches("^[a-zA-ZÀ-ÿ\\\\s]+$")) { //basic characters
+            throw new IllegalArgumentException("The client name cannot contain special characters.");
         }
     }
 }
