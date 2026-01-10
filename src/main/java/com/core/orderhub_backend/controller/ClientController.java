@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/clients")
+@RequestMapping("/client")
 public class ClientController {
 
     @Autowired
@@ -21,12 +21,12 @@ public class ClientController {
         return ResponseEntity.status(HttpStatus.CREATED).body(clientService.createClient(clientDto));
     }
 
-    @PutMapping("/update")
-    public ResponseEntity<ClientDto> update(@RequestBody Long id, ClientDto clientDto) { //Em REST, preciso identificar o recurso que vai ser att
+    @PutMapping("/{id}")
+    public ResponseEntity<ClientDto> update(@PathVariable Long id, @RequestBody ClientDto clientDto) { //Em REST, preciso identificar o recurso que vai ser att
         return ResponseEntity.status(HttpStatus.OK).body(clientService.updateClient(id, clientDto)); //ponto de melhoria: colocar id no endpoint
     }
 
-    @GetMapping("/id")
+    @GetMapping("/{id}")
     public ResponseEntity<ClientDto> findById(@PathVariable Long id) {
         ClientDto clientDto = clientService.findById(id);
         if (clientDto == null) {
