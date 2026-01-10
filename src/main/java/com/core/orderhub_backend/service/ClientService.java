@@ -30,16 +30,18 @@ public class ClientService {
 
     public ClientDto updateClient(Long id, ClientDto clientDto) {
 
-        if (clientDto.getId() == null) {
-            throw new ResourceNotFoundException("Client not found with id " + clientDto.getId());
-        }
-
         validateBeforeCreateOrUpdateClient(clientDto);
 
-        Client existsClient = clientRepository.findById(clientDto.getId()).orElseThrow(() -> new ResourceNotFoundException("Client not found: " + clientDto.getId()));
+        Client existingClient = clientRepository.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Client not found: " + id));
 
-        Client client = clientMapper.toEntity(clientDto);
-        Client savedClient = clientRepository.save(client);
+        //Precisei setar direto para que o hibernate não crie um novo objeto
+        existingClient.setName(clientDto.getName());
+        existingClient.setCpf(clientDto.getCpf());
+
+        Client savedClient = clientRepository.save(existingClient);
+
         return clientMapper.toDto(savedClient);
     }
 
@@ -56,7 +58,7 @@ public class ClientService {
         List<Client> clientList = clientRepository.findAll();
         List<ClientDto> clientDtoList = new ArrayList<>();
 
-        if (clientList.isEmpty()) throw new IllegalArgumentException("clients not found");
+        if (clientList.isEmpty()) throw new ResourceNotFoundException("clients not found");
 
         for (Client client : clientList) {
             ClientDto clientDto = clientMapper.toDto(client);
@@ -67,7 +69,7 @@ public class ClientService {
 
     public void deleteById(Long id) {
         if (id == null || !clientRepository.existsById(id)) {
-            throw new IllegalArgumentException("client not found with id: " + id); //not found and exists are
+            throw new ResourceNotFoundException("client not found with id: " + id); //not found and exists are
         }
         clientRepository.deleteById(id);
     }
@@ -96,14 +98,14 @@ public class ClientService {
     }
 
     private static void validateName(String name) { //validate with only basic characters
-        int minLengthName = 2; //constant
-        int maxLengthName = 50;
+        final int MIN_LENGTH_NAME = 2;
+        final int MAX_LENGTH_NAME = 50;
 
         if (name == null || name.isBlank()) {
             throw new NullPointerException("Client name cannot be null or empty");
         }
 
-        if (name.length() < minLengthName || name.length() > maxLengthName) {
+        if (name.length() < MIN_LENGTH_NAME || name.length() > MAX_LENGTH_NAME) {
             throw new IllegalArgumentException("Client name cannot be less than 2 or more than 50 characters");
         }
 
