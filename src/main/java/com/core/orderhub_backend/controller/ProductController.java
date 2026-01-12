@@ -22,7 +22,7 @@ public class ProductController {
         return ResponseEntity.status(HttpStatus.CREATED).body(productService.createProduct(productDto));
     }
 
-    @PutMapping("/id")
+    @PutMapping("/{id}")
     public ResponseEntity<ProductDto> update(@PathVariable Long id, @RequestBody ProductDto productDto) { //Em REST, preciso identificar o recurso que vai ser att
         return ResponseEntity.status(HttpStatus.OK).body(productService.updateProduct(id, productDto));
     }
