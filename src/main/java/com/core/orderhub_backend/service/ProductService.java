@@ -28,16 +28,15 @@ public class ProductService { //need: name/price/description validations
 
     public ProductDto updateProduct(Long id, ProductDto productDto) {
 
-        if (productDto.getId() == null) {
-            throw new ResourceNotFoundException("Product not found with id " + productDto.getId());
-        }
-
-        Product existingProduct = productRepository.findById(productDto.getId())
+        Product existingProduct = productRepository.findById(id)
                 .orElseThrow(() ->
-                        new ResourceNotFoundException("Product not found: " + productDto.getId()));
+                        new ResourceNotFoundException("Product not found: " + id));
 
-        Product product = productMapper.toEntity(productDto);
-        Product savedProduct = productRepository.save(product);
+        existingProduct.setName(productDto.getName());
+        existingProduct.setPrice(productDto.getPrice());
+        existingProduct.setDescription(productDto.getDescription());
+
+        Product savedProduct = productRepository.save(existingProduct);
         return productMapper.toDto(savedProduct);
     }
 
