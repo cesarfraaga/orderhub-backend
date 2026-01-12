@@ -50,7 +50,7 @@ public class ClientService {
             throw new IllegalArgumentException("client id null");
         }
 
-        Client client = clientRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("client id not found: " + id)); //change to resourcenotfoundexception - create class
+        Client client = clientRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("client id not found: " + id));
         return clientMapper.toDto(client);
     }
 
