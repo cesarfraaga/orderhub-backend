@@ -1,0 +1,28 @@
+package com.core.orderhub_backend.entity;
+
+import jakarta.persistence.*;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.List;
+
+@Entity
+@Table(name = "orders")  //OrderItem vai representar o produto dentro de um pedido específico.
+public class Order {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
+    private Long id;
+
+    private Client client;
+
+    private String status;
+
+    private BigDecimal total;
+
+    private LocalDateTime createdAt;
+
+    private List<OrderItem> orderItemList;
+
+}
