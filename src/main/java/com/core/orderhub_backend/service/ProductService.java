@@ -22,47 +22,7 @@ public class ProductService { //need: name/price/description validations
 
     public ProductDto createProduct(ProductDto productDto) {
 
-        BigDecimal price = productDto.getPrice();
-        final int MIN_LENGTH_NAME = 3;
-        final int MAX_LENGTH_NAME = 50;
-
-        if (productDto.getName() == null || productDto.getName().isBlank()) {
-            throw new IllegalArgumentException("Product name cannot be null or empty");
-        }
-
-        if (productDto.getName().length() < MIN_LENGTH_NAME || productDto.getName().length() > MAX_LENGTH_NAME) {
-            throw new IllegalArgumentException("Product name cannot be less than 3 or more than 50 characters");
-        }
-
-        if (!productDto.getName().matches("^[a-zA-ZÀ-ÿ\\\\s]+$")) { //basic characters
-            throw new IllegalArgumentException("The product name cannot contain special characters.");
-        }
-
-        if (price == null) {
-            throw new IllegalArgumentException("Price cannot be null");
-        }
-
-        if (price.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("Price must be greater than zero");
-        }
-
-        BigDecimal maxPrice = new BigDecimal("100000");
-        if (price.compareTo(maxPrice) > 0) {
-            throw new IllegalArgumentException("Price must be less than or equal to 100000");
-        }
-
-        if (productDto.getDescription() == null || productDto.getDescription().isBlank()) {
-            throw new IllegalArgumentException("Product description cannot be null or empty");
-        }
-
-        if (productDto.getDescription().length() < MIN_LENGTH_NAME || productDto.getDescription().length() > MAX_LENGTH_NAME) {
-            throw new IllegalArgumentException("Product description cannot be less than 3 or more than 100 characters");
-        }
-
-        if (productDto.getDescription().matches("^[a-zA-ZÀ-ÿ\\\\s]+$")) { //basic characters
-            throw new IllegalArgumentException("The product description cannot contain special characters.");
-        }
-
+        validateBeforeCreateOrUpdate(productDto);
 
         Product product = productMapper.toEntity(productDto);
         Product savedProduct = productRepository.save(product);
@@ -71,50 +31,11 @@ public class ProductService { //need: name/price/description validations
 
     public ProductDto updateProduct(Long id, ProductDto productDto) {
 
-        BigDecimal price = productDto.getPrice();
-        final int MIN_LENGTH_NAME = 3;
-        final int MAX_LENGTH_NAME = 50;
-
         Product existingProduct = productRepository.findById(id)
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Product not found: " + id));
 
-        if (productDto.getName() == null || productDto.getName().isBlank()) {
-            throw new IllegalArgumentException("Product name cannot be null or empty");
-        }
-
-        if (productDto.getName().length() < MIN_LENGTH_NAME || productDto.getName().length() > MAX_LENGTH_NAME) {
-            throw new IllegalArgumentException("Product name cannot be less than 3 or more than 50 characters");
-        }
-
-        if (!productDto.getName().matches("^[a-zA-ZÀ-ÿ\\\\s]+$")) { //basic characters
-            throw new IllegalArgumentException("The product name cannot contain special characters.");
-        }
-
-        if (price == null) {
-            throw new IllegalArgumentException("Price cannot be null");
-        }
-
-        if (price.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("Price must be greater than zero");
-        }
-
-        BigDecimal maxPrice = new BigDecimal("100000");
-        if (price.compareTo(maxPrice) > 0) {
-            throw new IllegalArgumentException("Price must be less than or equal to 100000");
-        }
-
-        if (productDto.getDescription() == null || productDto.getDescription().isBlank()) {
-            throw new IllegalArgumentException("Product description cannot be null or empty");
-        }
-
-        if (productDto.getDescription().length() < MIN_LENGTH_NAME || productDto.getDescription().length() > MAX_LENGTH_NAME) {
-            throw new IllegalArgumentException("Product description cannot be less than 3 or more than 100 characters");
-        }
-
-        if (!productDto.getDescription().matches("^[a-zA-ZÀ-ÿ\\\\s]+$")) { //basic characters
-            throw new IllegalArgumentException("The product description cannot contain special characters.");
-        }
+        validateBeforeCreateOrUpdate(productDto);
 
         existingProduct.setName(productDto.getName());
         existingProduct.setPrice(productDto.getPrice());
@@ -125,22 +46,15 @@ public class ProductService { //need: name/price/description validations
     }
 
     public ProductDto findById(Long id) {
-        if (id == null) {
-            throw new IllegalArgumentException("Product id cannot be null");
-        }
-
         Product product = productRepository.findById(id).orElseThrow(() ->
-                new ResourceNotFoundException("Product id not found: " + id));
+                new ResourceNotFoundException("Product not found: " + id));
         return productMapper.toDto(product);
     }
 
     public List<ProductDto> findAll() {
-        List<Product> productList = productRepository.findAll();
+        List<Product> productList = productRepository.findAll(); //Usar stream
         List<ProductDto> productDtoList = new ArrayList<>();
-
-        if (productList.isEmpty())
-            throw new ResourceNotFoundException("Products no available");
-
+        //Lista vazia não é erro
         for (Product product : productList) {
             ProductDto productDto = productMapper.toDto(product);
             productDtoList.add(productDto);
@@ -149,10 +63,69 @@ public class ProductService { //need: name/price/description validations
     }
 
     public void deleteById(Long id) {
-        if (id == null || !productRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Product not found with id: " + id);
+        Product product = productRepository.findById(id).orElseThrow(() ->
+                new ResourceNotFoundException("Product not found: " + id));
+        productRepository.delete(product);
+    }
+
+    private static void validateBeforeCreateOrUpdate(ProductDto productDto) {
+
+        validateProductName(productDto);
+
+        validateProductPrice(productDto);
+
+        validateProductDescription(productDto);
+    }
+
+    private static void validateProductPrice(ProductDto productDto) {
+        if (productDto.getPrice() == null) {
+            throw new IllegalArgumentException("Price cannot be null");
         }
-        productRepository.deleteById(id);
+
+        if (productDto.getPrice().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Price must be greater than zero");
+        }
+
+        BigDecimal maxPrice = new BigDecimal("100000");
+        if (productDto.getPrice().compareTo(maxPrice) > 0) {
+            throw new IllegalArgumentException("Price must be less than or equal to 100000");
+        }
+    }
+
+    private static void validateProductDescription(ProductDto productDto) {
+
+        final int MIN_LENGTH_DESCRIPTION = 3;
+        final int MAX_LENGTH_DESCRIPTION = 100;
+
+        if (productDto.getDescription() == null || productDto.getDescription().isBlank()) {
+            throw new IllegalArgumentException("Product description cannot be null or empty");
+        }
+
+        if (productDto.getDescription().length() < MIN_LENGTH_DESCRIPTION || productDto.getDescription().length() > MAX_LENGTH_DESCRIPTION) {
+            throw new IllegalArgumentException("Product description cannot be less than 3 or more than 100 characters");
+        }
+
+        if (!productDto.getDescription().matches("^[a-zA-ZÀ-ÿ\\\\s]+$")) { //basic characters
+            throw new IllegalArgumentException("The product description cannot contain special characters.");
+        }
+    }
+
+    private static void validateProductName(ProductDto productDto) {
+
+        final int MIN_LENGTH_NAME = 3;
+        final int MAX_LENGTH_NAME = 50;
+
+        if (productDto.getName() == null || productDto.getName().isBlank()) {
+            throw new IllegalArgumentException("Product name cannot be null or empty");
+        }
+
+        if (productDto.getName().length() < MIN_LENGTH_NAME || productDto.getName().length() > MAX_LENGTH_NAME) {
+            throw new IllegalArgumentException("Product name cannot be less than 3 or more than 50 characters");
+        }
+
+        if (!productDto.getName().matches("^[a-zA-ZÀ-ÿ\\\\s]+$")) { //basic characters
+            throw new IllegalArgumentException("The product name cannot contain special characters.");
+        }
     }
 
 }
