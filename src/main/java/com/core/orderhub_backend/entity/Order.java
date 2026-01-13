@@ -15,6 +15,8 @@ public class Order {
     @Column(name = "id")
     private Long id;
 
+    @ManyToOne
+    @JoinColumn(name = "client_id")
     private Client client;
 
     private String status;
@@ -23,6 +25,7 @@ public class Order {
 
     private LocalDateTime createdAt;
 
+    @OneToMany(mappedBy = "order")
     private List<OrderItem> orderItemList;
 
 }
