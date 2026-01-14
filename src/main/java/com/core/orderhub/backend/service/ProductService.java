@@ -1,10 +1,10 @@
-package com.core.orderhub_backend.service;
+package com.core.orderhub.backend.service;
 
-import com.core.orderhub_backend.dto.ProductDto;
-import com.core.orderhub_backend.entity.Product;
-import com.core.orderhub_backend.exception.ResourceNotFoundException;
-import com.core.orderhub_backend.mapper.ProductMapper;
-import com.core.orderhub_backend.repository.ProductRepository;
+import com.core.orderhub.backend.dto.ProductDto;
+import com.core.orderhub.backend.domain.entity.Product;
+import com.core.orderhub.backend.exception.ResourceNotFoundException;
+import com.core.orderhub.backend.repository.ProductRepository;
+import com.core.orderhub.backend.mapper.ProductMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

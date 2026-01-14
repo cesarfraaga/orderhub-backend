@@ -1,4 +1,4 @@
-package com.core.orderhub_backend.entity;
+package com.core.orderhub.backend.domain.entity;
 
 import jakarta.persistence.*;
 

@@ -1,4 +1,4 @@
-package com.core.orderhub_backend.exception;
+package com.core.orderhub.backend.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;

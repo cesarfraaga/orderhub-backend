@@ -1,7 +1,7 @@
-package com.core.orderhub_backend.controller;
+package com.core.orderhub.backend.controller;
 
-import com.core.orderhub_backend.dto.ProductDto;
-import com.core.orderhub_backend.service.ProductService;
+import com.core.orderhub.backend.dto.ProductDto;
+import com.core.orderhub.backend.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

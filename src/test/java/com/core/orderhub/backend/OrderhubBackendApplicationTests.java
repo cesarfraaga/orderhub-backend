@@ -1,4 +1,4 @@
-package com.core.orderhub_backend;
+package com.core.orderhub.backend;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

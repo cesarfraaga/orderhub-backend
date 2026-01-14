@@ -1,4 +1,4 @@
-package com.core.orderhub_backend;
+package com.core.orderhub.backend;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

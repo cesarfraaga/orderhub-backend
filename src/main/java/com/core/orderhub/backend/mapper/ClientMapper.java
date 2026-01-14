@@ -1,8 +1,8 @@
-package com.core.orderhub_backend.mapper;
+package com.core.orderhub.backend.mapper;
 
 
-import com.core.orderhub_backend.dto.ClientDto;
-import com.core.orderhub_backend.entity.Client;
+import com.core.orderhub.backend.domain.entity.Client;
+import com.core.orderhub.backend.dto.ClientDto;
 import org.mapstruct.Mapper;
 
 @Mapper(componentModel = "spring")

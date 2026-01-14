@@ -1,4 +1,4 @@
-package com.core.orderhub_backend.dto;
+package com.core.orderhub.backend.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
