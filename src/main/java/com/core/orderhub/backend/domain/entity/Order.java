@@ -1,5 +1,6 @@
-package com.core.orderhub_backend.entity;
+package com.core.orderhub.backend.domain.entity;
 
+import com.core.orderhub.backend.domain.enums.OrderStatus;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
@@ -19,13 +20,14 @@ public class Order {
     @JoinColumn(name = "client_id")
     private Client client;
 
-    private String status;
-
     private BigDecimal total;
 
     private LocalDateTime createdAt;
 
     @OneToMany(mappedBy = "order")
     private List<OrderItem> orderItemList;
+
+    @Enumerated(EnumType.STRING)
+    private OrderStatus status;
 
 }

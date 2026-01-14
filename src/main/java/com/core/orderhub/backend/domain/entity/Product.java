@@ -1,5 +1,6 @@
-package com.core.orderhub_backend.entity;
+package com.core.orderhub.backend.domain.entity;
 
+import com.core.orderhub.backend.domain.enums.ProductStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -27,5 +28,8 @@ public class Product {
 
     @Column(name = "description")
     private String description;
+
+    @Enumerated(EnumType.STRING)
+    private ProductStatus status;
 
 }

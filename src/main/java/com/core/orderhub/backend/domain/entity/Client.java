@@ -1,5 +1,6 @@
-package com.core.orderhub_backend.entity;
+package com.core.orderhub.backend.domain.entity;
 
+import com.core.orderhub.backend.domain.enums.ClientStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -22,5 +23,8 @@ public class Client {
 
     @Column(name = "cpf", unique = true, nullable = false)
     private String cpf;
+
+    @Enumerated(EnumType.STRING)
+    private ClientStatus status;
 
 }
