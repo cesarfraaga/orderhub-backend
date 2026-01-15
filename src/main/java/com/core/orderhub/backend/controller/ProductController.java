@@ -1,6 +1,7 @@
 package com.core.orderhub.backend.controller;
 
 import com.core.orderhub.backend.dto.ProductDto;
+import com.core.orderhub.backend.dto.ProductStatusDto;
 import com.core.orderhub.backend.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -25,6 +26,12 @@ public class ProductController {
     @PutMapping("/{id}")
     public ResponseEntity<ProductDto> update(@PathVariable Long id, @RequestBody ProductDto productDto) { //Em REST, preciso identificar o recurso que vai ser att
         return ResponseEntity.status(HttpStatus.OK).body(productService.updateProduct(id, productDto));
+    }
+
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<Void> updateStatus(@PathVariable Long id, @RequestBody ProductStatusDto dto) {
+        productService.updateProductStatus(id, dto.getStatus());
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/{id}")

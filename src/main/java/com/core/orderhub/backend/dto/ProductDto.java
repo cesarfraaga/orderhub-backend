@@ -1,5 +1,6 @@
 package com.core.orderhub.backend.dto;
 
+import com.core.orderhub.backend.domain.enums.ProductStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -16,5 +17,7 @@ public class ProductDto {
     private BigDecimal price;
 
     private String description;
+
+    private ProductStatus status;
 
 }

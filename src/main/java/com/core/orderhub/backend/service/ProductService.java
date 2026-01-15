@@ -1,12 +1,14 @@
 package com.core.orderhub.backend.service;
 
-import com.core.orderhub.backend.dto.ProductDto;
 import com.core.orderhub.backend.domain.entity.Product;
+import com.core.orderhub.backend.domain.enums.ProductStatus;
+import com.core.orderhub.backend.dto.ProductDto;
 import com.core.orderhub.backend.exception.ResourceNotFoundException;
-import com.core.orderhub.backend.repository.ProductRepository;
 import com.core.orderhub.backend.mapper.ProductMapper;
+import com.core.orderhub.backend.repository.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -25,6 +27,9 @@ public class ProductService { //need: name/price/description validations
         validateBeforeCreateOrUpdate(productDto);
 
         Product product = productMapper.toEntity(productDto);
+
+        product.setStatus(ProductStatus.ACTIVE);
+
         Product savedProduct = productRepository.save(product);
         return productMapper.toDto(savedProduct);
     }
@@ -43,6 +48,15 @@ public class ProductService { //need: name/price/description validations
 
         Product savedProduct = productRepository.save(existingProduct);
         return productMapper.toDto(savedProduct);
+    }
+
+    @Transactional
+    public void updateProductStatus(Long id, ProductStatus newStatus) { //need validations
+        Product product = productRepository.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Product not found: " + id)
+                );
+        product.setStatus(newStatus);
     }
 
     public ProductDto findById(Long id) {

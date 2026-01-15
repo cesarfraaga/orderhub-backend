@@ -1,12 +1,14 @@
 package com.core.orderhub.backend.service;
 
-import com.core.orderhub.backend.dto.ClientDto;
 import com.core.orderhub.backend.domain.entity.Client;
+import com.core.orderhub.backend.domain.enums.ClientStatus;
+import com.core.orderhub.backend.dto.ClientDto;
 import com.core.orderhub.backend.exception.ResourceNotFoundException;
 import com.core.orderhub.backend.mapper.ClientMapper;
 import com.core.orderhub.backend.repository.ClientRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,6 +26,9 @@ public class ClientService {
         validateBeforeCreateOrUpdateClient(clientDto);
 
         Client client = clientMapper.toEntity(clientDto);
+
+        client.setStatus(ClientStatus.ACTIVE);
+
         Client savedClient = clientRepository.save(client);
         return clientMapper.toDto(savedClient);
     }
@@ -45,12 +50,24 @@ public class ClientService {
         return clientMapper.toDto(savedClient);
     }
 
+    @Transactional //ou tudo dá certo ou tudo é desfeito: consistência de dados
+    public void updateClientStatus(Long id, ClientStatus newStatus) { //need validations
+        Client client = clientRepository.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Client not found: " + id)
+                );
+        client.setStatus(newStatus);
+    }
+
     public ClientDto findById(Long id) {
         if (id == null) {
             throw new IllegalArgumentException("client id null");
         }
 
-        Client client = clientRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("client id not found: " + id));
+        Client client = clientRepository.findById(id)
+                .orElseThrow(()
+                        -> new ResourceNotFoundException("client id not found: " + id)
+                );
         return clientMapper.toDto(client);
     }
 

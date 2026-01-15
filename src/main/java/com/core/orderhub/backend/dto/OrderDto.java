@@ -1,5 +1,6 @@
 package com.core.orderhub.backend.dto;
 
+import com.core.orderhub.backend.domain.enums.OrderStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -13,9 +14,9 @@ public class OrderDto {
 
     private Long id;
     private Long clientId;
-    private String status;
     private BigDecimal total;
     private LocalDateTime createdAt;
     private List<OrderItemDto> items;
+    private OrderStatus status;
 
 }

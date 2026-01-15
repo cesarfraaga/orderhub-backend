@@ -29,6 +29,9 @@ public class Product {
     @Column(name = "description")
     private String description;
 
+    @Column(name = "quantity")
+    private Integer quantity;
+
     @Enumerated(EnumType.STRING)
     private ProductStatus status;
 

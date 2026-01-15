@@ -1,18 +1,11 @@
 package com.core.orderhub.backend.dto;
 
 import com.core.orderhub.backend.domain.enums.ClientStatus;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data
-@AllArgsConstructor
-public class ClientDto {
-
-    private Long id;
-
-    private String name;
-
-    private String cpf;
+public class ClientStatusDto {
 
     private ClientStatus status;
+
 }
