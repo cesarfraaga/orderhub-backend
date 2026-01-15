@@ -2,12 +2,16 @@ package com.core.orderhub.backend.domain.entity;
 
 import com.core.orderhub.backend.domain.enums.OrderStatus;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
+@Setter
+@Getter
 @Table(name = "orders")  //OrderItem vai representar o produto dentro de um pedido específico.
 public class Order {
 
