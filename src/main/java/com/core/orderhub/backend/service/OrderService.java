@@ -2,6 +2,7 @@ package com.core.orderhub.backend.service;
 
 import com.core.orderhub.backend.domain.entity.Client;
 import com.core.orderhub.backend.domain.entity.Order;
+import com.core.orderhub.backend.domain.entity.OrderItem;
 import com.core.orderhub.backend.domain.entity.Product;
 import com.core.orderhub.backend.domain.enums.ClientStatus;
 import com.core.orderhub.backend.domain.enums.OrderStatus;
@@ -83,7 +84,24 @@ public class OrderService {
             throw new IllegalArgumentException("Product quantity not available. Available: " + product.getQuantity()); //business exception
         }
 
-        return null;
+        OrderItem orderItem = new OrderItem();
+
+        product.setQuantity(product.getQuantity() - quantity);
+
+        orderItem.setUnitPrice(product.getPrice());
+        BigDecimal subTotal = orderItem.getUnitPrice().multiply(BigDecimal.valueOf(quantity));
+
+        order.setTotal(order.getTotal().add(subTotal)); //Converti o quantity em bigdecimal
+
+        orderItem.setProduct(product);
+        orderItem.setQuantity(quantity);
+        orderItem.setSubtotal(subTotal);
+        orderItem.setOrder(order);
+        order.getOrderItemList().add(orderItem);
+
+        orderRepository.save(order);
+
+        return orderMapper.toDto(order);
     }
 
     public OrderDto removeOrderItem(Long orderId, Long itemId) {
