@@ -47,7 +47,7 @@ public class OrderService {
 
         Client client = findAndValidateClient(clientId);
 
-        Order order = new Order();
+        Order order = new Order(); //se eu for instanciar um objeto e precisar setar todos os atributos dele logo em seguida, é melhor instanciar ele já com os atributos
 
         order.setClient(client);
         order.setStatus(OrderStatus.CREATED);
@@ -104,8 +104,41 @@ public class OrderService {
         return orderMapper.toDto(order);
     }
 
-    public OrderDto removeOrderItem(Long orderId, Long itemId) {
-        return null;
+    @Transactional
+    public void removeOrderItem(Long orderId, Long productId) {
+
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(()
+                        -> new ResourceNotFoundException("Order not found: " + orderId)
+                );
+
+        if (order.getStatus() != OrderStatus.CREATED) {
+            throw new IllegalArgumentException("Order is not active");
+        }
+
+        //Tenho que pegar os products que tem em order, retirar o que equivale ao product id passado por parametro
+
+        OrderItem itemToRemove = null;
+
+        for (OrderItem orderItem : order.getOrderItemList()) {
+            if (orderItem.getProduct().getId().equals(productId)) {
+                itemToRemove = orderItem;
+                break;
+            }
+
+        }
+        if (itemToRemove == null) {
+            throw new IllegalArgumentException("Product not found in order"); //trocar por businessexception
+        }
+
+        order.setTotal(order.getTotal().subtract(itemToRemove.getSubtotal()));
+        itemToRemove.getProduct().setQuantity(itemToRemove.getProduct().getQuantity() + itemToRemove.getQuantity()); //teste return + qtd
+        order.getOrderItemList().remove(itemToRemove);
+
+        orderRepository.save(order);
+
+
+
     }
 
     public void updateOrderStatus() {
@@ -122,6 +155,10 @@ public class OrderService {
         Order savedOrder = orderRepository.save(order);
         return orderMapper.toDto(savedOrder);*/
         return null;
+    }
+
+    public void upDateOrderStatus() {
+
     }
 
     public OrderDto findById(Long id) {
