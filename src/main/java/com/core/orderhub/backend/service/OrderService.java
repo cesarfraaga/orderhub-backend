@@ -8,6 +8,7 @@ import com.core.orderhub.backend.domain.enums.ClientStatus;
 import com.core.orderhub.backend.domain.enums.OrderStatus;
 import com.core.orderhub.backend.domain.enums.ProductStatus;
 import com.core.orderhub.backend.dto.OrderDto;
+import com.core.orderhub.backend.dto.UpdateOrderStatusDto;
 import com.core.orderhub.backend.exception.ResourceNotFoundException;
 import com.core.orderhub.backend.mapper.OrderMapper;
 import com.core.orderhub.backend.repository.ClientRepository;
@@ -68,8 +69,9 @@ public class OrderService {
                 );
 
         if (order.getStatus() != OrderStatus.CREATED) {
-            throw new IllegalArgumentException("Order is not active");
+            throw new IllegalArgumentException("Only orders with status CREATED can be modified");
         }
+
 
         Product product = productRepository.findById(productId)
                 .orElseThrow(()
@@ -83,6 +85,10 @@ public class OrderService {
         if (quantity > product.getQuantity()) {
             throw new IllegalArgumentException("Product quantity not available. Available: " + product.getQuantity()); //business exception
         }
+
+        /*if (order.getStatus() == OrderStatus.FINISHED) {
+            throw new IllegalArgumentException("Finalized orders cannot be modified"); //Isso é validado implicitamente antes;
+        }*/
 
         OrderItem orderItem = new OrderItem();
 
@@ -113,10 +119,8 @@ public class OrderService {
                 );
 
         if (order.getStatus() != OrderStatus.CREATED) {
-            throw new IllegalArgumentException("Order is not active");
+            throw new IllegalArgumentException("Only orders with status CREATED can be modified");
         }
-
-        //Tenho que pegar os products que tem em order, retirar o que equivale ao product id passado por parametro
 
         OrderItem itemToRemove = null;
 
@@ -135,15 +139,29 @@ public class OrderService {
         itemToRemove.getProduct().setQuantity(itemToRemove.getProduct().getQuantity() + itemToRemove.getQuantity()); //teste return + qtd
         order.getOrderItemList().remove(itemToRemove);
 
+        orderRepository.save(order); //vou precisar de um dto
+    }
+
+    @Transactional
+    public void updateOrderStatus(Long orderId, UpdateOrderStatusDto statusDto) {
+
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Order not found: " + orderId)
+                );
+
+        OrderStatus newStatus = statusDto.getStatus();
+        OrderStatus currentStatus = order.getStatus();
+
+        if (!currentStatus.canTransitionTo(newStatus)) {
+            throw new IllegalArgumentException(
+                    "Cannot change order status from " + currentStatus + " to " + newStatus);
+        }
+
+        order.setStatus(newStatus);
         orderRepository.save(order);
-
-
-
     }
 
-    public void updateOrderStatus() {
-
-    }
 
     public OrderDto updateOrder(Long id, OrderDto orderDto) {
 
@@ -155,10 +173,6 @@ public class OrderService {
         Order savedOrder = orderRepository.save(order);
         return orderMapper.toDto(savedOrder);*/
         return null;
-    }
-
-    public void upDateOrderStatus() {
-
     }
 
     public OrderDto findById(Long id) {
