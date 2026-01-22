@@ -8,7 +8,6 @@ import com.core.orderhub.backend.domain.enums.ClientStatus;
 import com.core.orderhub.backend.domain.enums.OrderStatus;
 import com.core.orderhub.backend.domain.enums.ProductStatus;
 import com.core.orderhub.backend.dto.OrderDto;
-import com.core.orderhub.backend.dto.UpdateOrderStatusDto;
 import com.core.orderhub.backend.exception.ResourceNotFoundException;
 import com.core.orderhub.backend.mapper.OrderMapper;
 import com.core.orderhub.backend.repository.ClientRepository;
@@ -37,11 +36,6 @@ public class OrderService {
 
     @Autowired
     private ProductRepository productRepository;
-
-/*   createOrder(clientId) OK
-    addItem(orderId, productId, quantity)
-    removeItem(orderId, itemId)
-    updateStatus(orderId, newStatus)*/
 
     @Transactional
     public OrderDto createOrder(Long clientId) {
@@ -85,10 +79,6 @@ public class OrderService {
         if (quantity > product.getQuantity()) {
             throw new IllegalArgumentException("Product quantity not available. Available: " + product.getQuantity()); //business exception
         }
-
-        /*if (order.getStatus() == OrderStatus.FINISHED) {
-            throw new IllegalArgumentException("Finalized orders cannot be modified"); //Isso é validado implicitamente antes;
-        }*/
 
         OrderItem orderItem = new OrderItem();
 
@@ -143,14 +133,13 @@ public class OrderService {
     }
 
     @Transactional
-    public void updateOrderStatus(Long orderId, UpdateOrderStatusDto statusDto) {
+    public void updateOrderStatus(Long orderId, OrderStatus newStatus) {
 
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Order not found: " + orderId)
                 );
 
-        OrderStatus newStatus = statusDto.getStatus();
         OrderStatus currentStatus = order.getStatus();
 
         if (!currentStatus.canTransitionTo(newStatus)) {
@@ -162,18 +151,6 @@ public class OrderService {
         orderRepository.save(order);
     }
 
-
-    public OrderDto updateOrder(Long id, OrderDto orderDto) {
-
-        Order existingOrder = orderRepository.findById(orderDto.getId())
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Order not found: " + id));
-
-/*        Order order = orderMapper.toEntity(orderDto);
-        Order savedOrder = orderRepository.save(order);
-        return orderMapper.toDto(savedOrder);*/
-        return null;
-    }
 
     public OrderDto findById(Long id) {
         Order order = orderRepository.findById(id).orElseThrow(() ->
