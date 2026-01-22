@@ -23,12 +23,18 @@ public class ClientController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ClientDto> update(@PathVariable Long id, @RequestBody ClientDto clientDto) { //Em REST, preciso identificar o recurso que vai ser att
+    public ResponseEntity<ClientDto> update(
+            @PathVariable Long id, //+ legibilidade
+            @RequestBody ClientDto clientDto
+    ) { //Em REST, preciso identificar o recurso que vai ser att
         return ResponseEntity.status(HttpStatus.OK).body(clientService.updateClient(id, clientDto));
     }
 
     @PatchMapping("/{id}/status")
-    public ResponseEntity<Void> updateStatus(@PathVariable Long id, @RequestBody ClientStatusDto dto) {
+    public ResponseEntity<Void> updateStatus(
+            @PathVariable Long id,
+            @RequestBody ClientStatusDto dto
+    ) {
         clientService.updateClientStatus(id, dto.getStatus());
         return ResponseEntity.noContent().build();
     }
@@ -50,8 +56,7 @@ public class ClientController {
 
     @GetMapping("findAll")
     public ResponseEntity<List<ClientDto>> findAll() {
-        List<ClientDto> clientDtoList = clientService.findAll();
+        List<ClientDto> clientDtoList = clientService.findAll(); //Melhor alinhar com o que fiz na order, pra deixar mais enxuto
         return ResponseEntity.ok(clientDtoList);
     }
-
 }
