@@ -23,8 +23,6 @@ public class ClientService {
 
     public ClientDto createClient(ClientDto clientDto) {
 
-        validateBeforeCreateOrUpdateClient(clientDto);
-
         Client client = clientMapper.toEntity(clientDto);
 
         client.setStatus(ClientStatus.ACTIVE);
@@ -34,8 +32,6 @@ public class ClientService {
     }
 
     public ClientDto updateClient(Long id, ClientDto clientDto) {
-
-        validateBeforeCreateOrUpdateClient(clientDto);
 
         Client existingClient = clientRepository.findById(id)
                 .orElseThrow(() ->
@@ -91,43 +87,4 @@ public class ClientService {
         clientRepository.deleteById(id);
     }
 
-    private static void validateBeforeCreateOrUpdateClient(ClientDto clientDto) {
-
-        validateName(clientDto.getName());
-
-        validateCpf(clientDto.getCpf());
-    }
-
-    private static void validateCpf(String cpf) {
-        int lengthCPF = 11;
-
-        if (cpf.isBlank()) { //create a constant class to text
-            throw new NullPointerException("Client cpf cannot be null or empty");
-        }
-
-        if (cpf.length() != lengthCPF) {
-            throw new IllegalArgumentException("The CPF must have 11 digits.");
-        }
-
-        if (!cpf.matches("^[0-9]+$")) {
-            throw new IllegalArgumentException("Only numbers allowed.");
-        }
-    }
-
-    private static void validateName(String name) { //validate with only basic characters
-        final int MIN_LENGTH_NAME = 2;
-        final int MAX_LENGTH_NAME = 50;
-
-        if (name == null || name.isBlank()) {
-            throw new NullPointerException("Client name cannot be null or empty");
-        }
-
-        if (name.length() < MIN_LENGTH_NAME || name.length() > MAX_LENGTH_NAME) {
-            throw new IllegalArgumentException("Client name cannot be less than 2 or more than 50 characters");
-        }
-
-        if (name.matches("^[a-zA-ZÀ-ÿ\\\\s]+$")) { //basic characters
-            throw new IllegalArgumentException("The client name cannot contain special characters.");
-        }
-    }
 }
