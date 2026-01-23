@@ -4,6 +4,7 @@ import com.core.orderhub.backend.dto.AddOrderItemDto;
 import com.core.orderhub.backend.dto.OrderDto;
 import com.core.orderhub.backend.dto.UpdateOrderStatusDto;
 import com.core.orderhub.backend.service.OrderService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,7 +27,7 @@ public class OrderController {
     @PostMapping("/{id}/items")
     public ResponseEntity<OrderDto> addOrderItem(
             @PathVariable Long id,
-            @RequestBody AddOrderItemDto dto
+            @RequestBody @Valid AddOrderItemDto dto
     ) {
         return ResponseEntity.ok(orderService.addOrderItem(id, dto.getProductId(), dto.getQuantity()));
     }
@@ -43,7 +44,7 @@ public class OrderController {
     @PatchMapping("/{id}/status")
     public ResponseEntity<Void> updateOrderStatus(
             @PathVariable Long id,
-            @RequestBody UpdateOrderStatusDto dto
+            @RequestBody @Valid UpdateOrderStatusDto dto
     ) {
         orderService.updateOrderStatus(id, dto.getStatus());
         return ResponseEntity.noContent().build();
