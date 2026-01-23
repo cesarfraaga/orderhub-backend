@@ -28,7 +28,11 @@ public class ProductDto {
     @Pattern(regexp = "^[a-zA-Z0-9À-ÿ\\s]+$", message = "product description cannot contain special characters.")
     private String description;
 
-    @NotNull(message = "product status cannot be null.")
+    @NotNull(message = "quantity cannot be null.")
+    @Positive(message = "quantity must be greater than zero.")
+    @Max(value = 100, message = "quantity cannot be greater than 1000.")
+    private Integer quantity;
+
     private ProductStatus status;
 
 }
