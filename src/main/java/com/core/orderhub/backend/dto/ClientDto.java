@@ -23,6 +23,6 @@ public class ClientDto {
     @Pattern(regexp = "\\d{11}", message = "CPF must have exactly 11 digits.")
     private String cpf;
 
-    @NotNull(message = "client status cannot be null.")
+    //Não preciso da validação aqui já que o status é sempre definido na service
     private ClientStatus status;
 }
