@@ -3,6 +3,8 @@ package com.core.orderhub.backend.controller;
 import com.core.orderhub.backend.dto.ProductDto;
 import com.core.orderhub.backend.dto.ProductStatusDto;
 import com.core.orderhub.backend.service.ProductService;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,29 +21,29 @@ public class ProductController {
     private ProductService productService;
 
     @PostMapping("/save")
-    public ResponseEntity<ProductDto> save(@RequestBody ProductDto productDto) {
+    public ResponseEntity<ProductDto> save(@Valid @RequestBody ProductDto productDto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(productService.createProduct(productDto));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<ProductDto> update(
-            @PathVariable Long id,
-            @RequestBody ProductDto productDto
+            @PathVariable @Positive Long id,
+            @Valid @RequestBody ProductDto productDto
     ) { //Em REST, preciso identificar o recurso que vai ser att
         return ResponseEntity.status(HttpStatus.OK).body(productService.updateProduct(id, productDto));
     }
 
     @PatchMapping("/{id}/status")
     public ResponseEntity<Void> updateStatus(
-            @PathVariable Long id,
-            @RequestBody ProductStatusDto dto
+            @PathVariable @Positive Long id,
+            @Valid @RequestBody ProductStatusDto dto
     ) {
         productService.updateProductStatus(id, dto.getStatus());
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ProductDto> findById(@PathVariable Long id) {
+    public ResponseEntity<ProductDto> findById(@PathVariable @Positive Long id) {
         ProductDto productDto = productService.findById(id);
         if (productDto == null) {
             return ResponseEntity.notFound().build();
@@ -50,7 +52,7 @@ public class ProductController {
     }
 
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<Void> deleteById(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteById(@PathVariable @Positive Long id) {
         productService.deleteById(id);
         return ResponseEntity.noContent().build();
     }
