@@ -5,6 +5,7 @@ import com.core.orderhub.backend.dto.OrderDto;
 import com.core.orderhub.backend.dto.UpdateOrderStatusDto;
 import com.core.orderhub.backend.service.OrderService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,13 +21,13 @@ public class OrderController {
     private OrderService orderService;
 
     @PostMapping("/client/{clientId}")
-    public ResponseEntity<OrderDto> save(@PathVariable Long clientId) {
+    public ResponseEntity<OrderDto> save(@Positive @PathVariable Long clientId) {
         return ResponseEntity.status(HttpStatus.CREATED).body(orderService.createOrder(clientId));
     }
 
     @PostMapping("/{id}/items")
     public ResponseEntity<OrderDto> addOrderItem(
-            @PathVariable Long id,
+            @Positive @PathVariable Long id,
             @RequestBody @Valid AddOrderItemDto dto
     ) {
         return ResponseEntity.ok(orderService.addOrderItem(id, dto.getProductId(), dto.getQuantity()));
@@ -34,8 +35,8 @@ public class OrderController {
 
     @DeleteMapping("/{id}/items/{productId}")
     public ResponseEntity<Void> removeOrderItem(
-            @PathVariable Long id,
-            @PathVariable Long productId
+            @Positive @PathVariable Long id,
+            @Positive @PathVariable Long productId
     ) {
         orderService.removeOrderItem(id, productId);
         return ResponseEntity.noContent().build();
@@ -43,7 +44,7 @@ public class OrderController {
 
     @PatchMapping("/{id}/status")
     public ResponseEntity<Void> updateOrderStatus(
-            @PathVariable Long id,
+            @Positive @PathVariable Long id,
             @RequestBody @Valid UpdateOrderStatusDto dto
     ) {
         orderService.updateOrderStatus(id, dto.getStatus());
@@ -51,13 +52,13 @@ public class OrderController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteById(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteById(@Positive @PathVariable Long id) {
         orderService.deleteById(id);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<OrderDto> findById(@PathVariable Long id) {
+    public ResponseEntity<OrderDto> findById(@Positive @PathVariable Long id) {
         return ResponseEntity.ok().body(orderService.findById(id));
     }
 
