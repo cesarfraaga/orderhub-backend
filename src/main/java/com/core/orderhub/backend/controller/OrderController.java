@@ -62,7 +62,7 @@ public class OrderController {
         return ResponseEntity.ok().body(orderService.findById(id));
     }
 
-    @GetMapping("/orders")
+    @GetMapping()
     public ResponseEntity<List<OrderDto>> findAll() {
         return ResponseEntity.ok((orderService.findAll()));
     }

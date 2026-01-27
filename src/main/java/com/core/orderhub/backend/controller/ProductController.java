@@ -57,7 +57,7 @@ public class ProductController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("products")
+    @GetMapping()
     public ResponseEntity<List<ProductDto>> findAll() {
         List<ProductDto> productDtoList = productService.findAll();
         return ResponseEntity.ok(productDtoList);

@@ -9,11 +9,11 @@ public class OrderItemDto {
 
         @NotNull(message = "product id cannot be null.")
         @Positive(message = "product id must be greater than zero.")
-        private Long productId; //preciso validar
+        private Long productId;
 
         @NotNull(message = "item quantity cannot be null.")
         @Positive(message = "item quantity must be greater than zero.")
-        private Integer quantity; //preciso validar
+        private Integer quantity;
 
         private String productName;
         private BigDecimal unitPrice;
