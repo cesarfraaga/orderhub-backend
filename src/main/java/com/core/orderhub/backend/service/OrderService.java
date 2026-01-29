@@ -8,6 +8,7 @@ import com.core.orderhub.backend.domain.enums.ClientStatus;
 import com.core.orderhub.backend.domain.enums.OrderStatus;
 import com.core.orderhub.backend.domain.enums.ProductStatus;
 import com.core.orderhub.backend.dto.OrderDto;
+import com.core.orderhub.backend.exception.BusinessException;
 import com.core.orderhub.backend.exception.ResourceNotFoundException;
 import com.core.orderhub.backend.mapper.OrderMapper;
 import com.core.orderhub.backend.repository.ClientRepository;
@@ -63,7 +64,7 @@ public class OrderService {
                 );
 
         if (order.getStatus() != OrderStatus.CREATED) {
-            throw new IllegalArgumentException("Only orders with status CREATED can be modified");
+            throw new BusinessException("Only orders with status CREATED can be modified");
         }
 
 
@@ -73,11 +74,11 @@ public class OrderService {
                 );
 
         if (product.getStatus() != ProductStatus.ACTIVE) {
-            throw new IllegalArgumentException("Product is not active");  //business exception
+            throw new BusinessException("Product is not active");
         }
 
         if (quantity > product.getQuantity()) {
-            throw new IllegalArgumentException("Product quantity not available. Available: " + product.getQuantity()); //business exception
+            throw new BusinessException("Product quantity not available. Available: " + product.getQuantity());
         }
 
         OrderItem orderItem = new OrderItem();
@@ -109,7 +110,7 @@ public class OrderService {
                 );
 
         if (order.getStatus() != OrderStatus.CREATED) {
-            throw new IllegalArgumentException("Only orders with status CREATED can be modified");
+            throw new BusinessException("Only orders with status CREATED can be modified");
         }
 
         OrderItem itemToRemove = null;
@@ -122,11 +123,11 @@ public class OrderService {
 
         }
         if (itemToRemove == null) {
-            throw new IllegalArgumentException("Product not found in order"); //trocar por businessexception
+            throw new BusinessException("Product not found in order");
         }
 
         order.setTotal(order.getTotal().subtract(itemToRemove.getSubtotal()));
-        itemToRemove.getProduct().setQuantity(itemToRemove.getProduct().getQuantity() + itemToRemove.getQuantity()); //teste return + qtd
+        itemToRemove.getProduct().setQuantity(itemToRemove.getProduct().getQuantity() + itemToRemove.getQuantity());
         order.getOrderItemList().remove(itemToRemove);
 
         orderRepository.save(order); //vou precisar de um dto
@@ -143,14 +144,12 @@ public class OrderService {
         OrderStatus currentStatus = order.getStatus();
 
         if (!currentStatus.canTransitionTo(newStatus)) {
-            throw new IllegalArgumentException(
-                    "Cannot change order status from " + currentStatus + " to " + newStatus);
+            throw new BusinessException("Cannot change order status from " + currentStatus + " to " + newStatus);
         }
 
         order.setStatus(newStatus);
         orderRepository.save(order);
     }
-
 
     public OrderDto findById(Long id) {
         Order order = orderRepository.findById(id).orElseThrow(() ->
@@ -181,10 +180,8 @@ public class OrderService {
                         new ResourceNotFoundException("Client not found: " + clientId));
 
         if (client.getStatus() != ClientStatus.ACTIVE) {
-            throw new IllegalArgumentException("Client is not active"); //BusinessException
+            throw new BusinessException("Client is not active");
         }
-
         return client;
     }
-
 }
