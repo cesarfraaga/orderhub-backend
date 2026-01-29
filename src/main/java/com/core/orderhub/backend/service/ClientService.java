@@ -56,10 +56,6 @@ public class ClientService {
     }
 
     public ClientDto findById(Long id) {
-        if (id == null) {
-            throw new IllegalArgumentException("client id null");
-        }
-
         Client client = clientRepository.findById(id)
                 .orElseThrow(()
                         -> new ResourceNotFoundException("client id not found: " + id)
