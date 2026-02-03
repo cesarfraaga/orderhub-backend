@@ -2,6 +2,8 @@ package com.core.orderhub.backend.exception;
 
 import com.core.orderhub.backend.dto.ErrorMessageDto;
 import jakarta.servlet.http.HttpServletRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -11,16 +13,18 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class GlobalExceptionHandler { //intercepta exceções, decide http status, corpo da resposta e centraliza msgs
 
+    private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ErrorMessageDto> handleNotFound(
             ResourceNotFoundException exception,
             HttpServletRequest request
     ) {
+        logger.warn("Resource not found: {}", exception.getMessage());
         ErrorMessageDto errorMessageDto = new ErrorMessageDto(
                 HttpStatus.NOT_FOUND.value(),
                 exception.getMessage(),
                 request.getRequestURI()
-
         );
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorMessageDto);
     }
@@ -30,6 +34,7 @@ public class GlobalExceptionHandler { //intercepta exceções, decide http statu
             BusinessException exception,
             HttpServletRequest request
     ) {
+        logger.warn("Business error: {}", exception.getMessage());
         ErrorMessageDto errorMessageDto = new ErrorMessageDto(
                 HttpStatus.BAD_REQUEST.value(),
                 exception.getMessage(),
@@ -43,10 +48,17 @@ public class GlobalExceptionHandler { //intercepta exceções, decide http statu
             MethodArgumentNotValidException exception,
             HttpServletRequest request
     ) {
+        String field = exception.getBindingResult()
+                .getFieldErrors()
+                .get(0)
+                .getField();
+
         String message = exception.getBindingResult()
                 .getFieldErrors()
                 .get(0)
                 .getDefaultMessage();
+
+        logger.warn("Validation error on field '{}' : {}", field, message);
 
         ErrorMessageDto errorMessageDto = new ErrorMessageDto(
                 HttpStatus.BAD_REQUEST.value(),
@@ -56,5 +68,4 @@ public class GlobalExceptionHandler { //intercepta exceções, decide http statu
 
         return ResponseEntity.badRequest().body(errorMessageDto);
     }
-
 }
