@@ -6,6 +6,8 @@ import com.core.orderhub.backend.dto.ClientDto;
 import com.core.orderhub.backend.exception.ResourceNotFoundException;
 import com.core.orderhub.backend.mapper.ClientMapper;
 import com.core.orderhub.backend.repository.ClientRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,6 +17,8 @@ import java.util.List;
 
 @Service
 public class ClientService {
+
+    private static final Logger logger = LoggerFactory.getLogger(ClientService.class);
 
     @Autowired
     private ClientRepository clientRepository;
@@ -28,6 +32,7 @@ public class ClientService {
         client.setStatus(ClientStatus.ACTIVE);
 
         Client savedClient = clientRepository.save(client);
+        logger.info("Creating client... id={}", client.getId());
         return clientMapper.toDto(savedClient);
     }
 
@@ -42,7 +47,7 @@ public class ClientService {
         existingClient.setCpf(clientDto.getCpf());
 
         Client savedClient = clientRepository.save(existingClient);
-
+        logger.info("Updating client... id={}", existingClient.getId());
         return clientMapper.toDto(savedClient);
     }
 
@@ -52,7 +57,9 @@ public class ClientService {
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Client not found: " + id)
                 );
+        ClientStatus oldStatus = client.getStatus();
         client.setStatus(newStatus);
+        logger.info("Client {} status changed from {} to {}", id, oldStatus,newStatus);
     }
 
     public ClientDto findById(Long id) {
