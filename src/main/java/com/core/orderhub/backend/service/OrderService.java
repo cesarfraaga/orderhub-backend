@@ -14,6 +14,8 @@ import com.core.orderhub.backend.mapper.OrderMapper;
 import com.core.orderhub.backend.repository.ClientRepository;
 import com.core.orderhub.backend.repository.OrderRepository;
 import com.core.orderhub.backend.repository.ProductRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +27,8 @@ import java.util.List;
 
 @Service
 public class OrderService {
+
+    private static final Logger logger = LoggerFactory.getLogger(OrderService.class);
 
     @Autowired
     private OrderRepository orderRepository;
@@ -51,6 +55,7 @@ public class OrderService {
         order.setCreatedAt(LocalDateTime.now());
 
         Order savedOrder = orderRepository.save(order);
+        logger.info("Creating order... id={}", order.getId());
         return orderMapper.toDto(savedOrder);
 
     }
@@ -66,7 +71,6 @@ public class OrderService {
         if (order.getStatus() != OrderStatus.CREATED) {
             throw new BusinessException("Only orders with status CREATED can be modified");
         }
-
 
         Product product = productRepository.findById(productId)
                 .orElseThrow(()
@@ -97,6 +101,9 @@ public class OrderService {
         order.getOrderItemList().add(orderItem);
 
         orderRepository.save(order);
+        logger.info("Item added to order {} | product={} | qty={} | subtotal={}",
+                order.getId(), product.getId(), quantity, subTotal
+        );
 
         return orderMapper.toDto(order);
     }
@@ -131,6 +138,11 @@ public class OrderService {
         order.getOrderItemList().remove(itemToRemove);
 
         orderRepository.save(order); //vou precisar de um dto
+        logger.info("Item removed from order {} | product={} | qty={} |",
+                order.getId(),
+                itemToRemove.getProduct().getId(),
+                itemToRemove.getQuantity()
+        );
     }
 
     @Transactional
@@ -148,7 +160,9 @@ public class OrderService {
         }
 
         order.setStatus(newStatus);
-        orderRepository.save(order);
+        logger.info("Updated order {} status from {} to {}",
+                order.getId(), currentStatus, newStatus
+                );
     }
 
     public OrderDto findById(Long id) {
