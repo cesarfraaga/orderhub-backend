@@ -6,6 +6,8 @@ import com.core.orderhub.backend.dto.ProductDto;
 import com.core.orderhub.backend.exception.ResourceNotFoundException;
 import com.core.orderhub.backend.mapper.ProductMapper;
 import com.core.orderhub.backend.repository.ProductRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,6 +18,8 @@ import java.util.List;
 
 @Service
 public class ProductService {
+
+    private static final Logger logger = LoggerFactory.getLogger(ProductService.class);
 
     @Autowired
     private ProductRepository productRepository;
@@ -30,6 +34,7 @@ public class ProductService {
         product.setStatus(ProductStatus.ACTIVE);
 
         Product savedProduct = productRepository.save(product);
+        logger.info("Creating product... id={}", product.getId());
         return productMapper.toDto(savedProduct);
     }
 
@@ -44,16 +49,19 @@ public class ProductService {
         existingProduct.setDescription(productDto.getDescription());
 
         Product savedProduct = productRepository.save(existingProduct);
+        logger.info("Updating product... id={}", existingProduct.getId());
         return productMapper.toDto(savedProduct);
     }
 
     @Transactional
-    public void updateProductStatus(Long id, ProductStatus newStatus) { //need validations
+    public void updateProductStatus(Long id, ProductStatus newStatus) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Product not found: " + id)
                 );
+        ProductStatus oldStatus = product.getStatus();
         product.setStatus(newStatus);
+        logger.info("Product {} status changed from {} to {}", id, oldStatus, newStatus);
     }
 
     public ProductDto findById(Long id) {
