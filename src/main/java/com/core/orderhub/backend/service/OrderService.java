@@ -55,7 +55,7 @@ public class OrderService {
         order.setCreatedAt(LocalDateTime.now());
 
         Order savedOrder = orderRepository.save(order);
-        logger.info("Creating order... id={}", order.getId());
+        logger.info("Creating order... id={}", savedOrder.getId());
         return orderMapper.toDto(savedOrder);
 
     }
@@ -100,7 +100,7 @@ public class OrderService {
         orderItem.setOrder(order);
         order.getOrderItemList().add(orderItem);
 
-        orderRepository.save(order);
+        orderRepository.save(order); //tecnicamente não é necessário, mas mantive por clareza
         logger.info("Item added to order {} | product={} | qty={} | subtotal={}",
                 order.getId(), product.getId(), quantity, subTotal
         );
@@ -127,8 +127,8 @@ public class OrderService {
                 itemToRemove = orderItem;
                 break;
             }
-
         }
+
         if (itemToRemove == null) {
             throw new BusinessException("Product not found in order");
         }
@@ -137,7 +137,7 @@ public class OrderService {
         itemToRemove.getProduct().setQuantity(itemToRemove.getProduct().getQuantity() + itemToRemove.getQuantity());
         order.getOrderItemList().remove(itemToRemove);
 
-        orderRepository.save(order); //vou precisar de um dto
+        orderRepository.save(order);
         logger.info("Item removed from order {} | product={} | qty={} |",
                 order.getId(),
                 itemToRemove.getProduct().getId(),
@@ -162,7 +162,7 @@ public class OrderService {
         order.setStatus(newStatus);
         logger.info("Updated order {} status from {} to {}",
                 order.getId(), currentStatus, newStatus
-                );
+        );
     }
 
     public OrderDto findById(Long id) {
