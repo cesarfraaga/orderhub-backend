@@ -12,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -65,8 +64,9 @@ public class ProductService {
     }
 
     public ProductDto findById(Long id) {
-        Product product = productRepository.findById(id).orElseThrow(() ->
-                new ResourceNotFoundException("Product not found: " + id));
+        Product product = productRepository.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Product not found: " + id));
         return productMapper.toDto(product);
     }
 
