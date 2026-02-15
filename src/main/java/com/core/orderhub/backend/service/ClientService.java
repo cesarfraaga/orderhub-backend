@@ -74,8 +74,6 @@ public class ClientService {
         List<Client> clientList = clientRepository.findAll();
         List<ClientDto> clientDtoList = new ArrayList<>();
 
-        if (clientList.isEmpty()) throw new ResourceNotFoundException("clients not found");
-
         for (Client client : clientList) {
             ClientDto clientDto = clientMapper.toDto(client);
             clientDtoList.add(clientDto);
@@ -84,10 +82,9 @@ public class ClientService {
     }
 
     public void deleteById(Long id) {
-        if (id == null || !clientRepository.existsById(id)) {
-            throw new ResourceNotFoundException("client not found with id: " + id); //not found and exists are
-        }
-        clientRepository.deleteById(id);
+        Client client = clientRepository.findById(id).orElseThrow(() ->
+                new ResourceNotFoundException("Client not found: " + id));
+        clientRepository.delete(client);
     }
 
 }
