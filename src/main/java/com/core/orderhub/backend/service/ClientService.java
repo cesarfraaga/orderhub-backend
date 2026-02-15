@@ -3,6 +3,7 @@ package com.core.orderhub.backend.service;
 import com.core.orderhub.backend.domain.entity.Client;
 import com.core.orderhub.backend.domain.enums.ClientStatus;
 import com.core.orderhub.backend.dto.ClientDto;
+import com.core.orderhub.backend.exception.BusinessException;
 import com.core.orderhub.backend.exception.ResourceNotFoundException;
 import com.core.orderhub.backend.mapper.ClientMapper;
 import com.core.orderhub.backend.repository.ClientRepository;
@@ -26,6 +27,10 @@ public class ClientService {
     private ClientMapper clientMapper;
 
     public ClientDto createClient(ClientDto clientDto) {
+
+        if (clientRepository.existsByCpf(clientDto.getCpf())) {
+            throw new BusinessException("CPF already registered");
+        }
 
         Client client = clientMapper.toEntity(clientDto);
 
