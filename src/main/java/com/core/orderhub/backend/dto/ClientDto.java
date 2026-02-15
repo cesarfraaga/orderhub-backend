@@ -2,14 +2,13 @@ package com.core.orderhub.backend.dto;
 
 import com.core.orderhub.backend.domain.enums.ClientStatus;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
 
 @Data
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class ClientDto {
 
     private Long id;
@@ -23,6 +22,5 @@ public class ClientDto {
     @Pattern(regexp = "\\d{11}", message = "CPF must have exactly 11 digits.")
     private String cpf;
 
-    //Não preciso da validação aqui já que o status é sempre definido na service
     private ClientStatus status;
 }
