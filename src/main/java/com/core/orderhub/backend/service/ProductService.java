@@ -25,6 +25,8 @@ public class ProductService {
     @Autowired
     private ProductMapper productMapper;
 
+    private static final String PRODUCT_NOT_FOUND = "Product not found: ";
+
     public ProductDto createProduct(ProductDto productDto) {
 
 
@@ -41,7 +43,7 @@ public class ProductService {
 
         Product existingProduct = productRepository.findById(id)
                 .orElseThrow(() ->
-                        new ResourceNotFoundException("Product not found: " + id));
+                        new ResourceNotFoundException(PRODUCT_NOT_FOUND + id));
 
         existingProduct.setName(productDto.getName());
         existingProduct.setPrice(productDto.getPrice());
@@ -56,7 +58,7 @@ public class ProductService {
     public void updateProductStatus(Long id, ProductStatus newStatus) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() ->
-                        new ResourceNotFoundException("Product not found: " + id)
+                        new ResourceNotFoundException(PRODUCT_NOT_FOUND + id)
                 );
         ProductStatus oldStatus = product.getStatus();
         product.setStatus(newStatus);
@@ -66,7 +68,7 @@ public class ProductService {
     public ProductDto findById(Long id) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() ->
-                        new ResourceNotFoundException("Product not found: " + id));
+                        new ResourceNotFoundException(PRODUCT_NOT_FOUND + id));
         return productMapper.toDto(product);
     }
 
@@ -83,7 +85,7 @@ public class ProductService {
 
     public void deleteById(Long id) {
         Product product = productRepository.findById(id).orElseThrow(() ->
-                new ResourceNotFoundException("Product not found: " + id));
+                new ResourceNotFoundException(PRODUCT_NOT_FOUND + id));
         productRepository.delete(product);
     }
 }

@@ -42,6 +42,8 @@ public class OrderService {
     @Autowired
     private ProductRepository productRepository;
 
+    private static final String ORDER_NOT_FOUND = "Order not found: ";
+
     @Transactional
     public OrderDto createOrder(Long clientId) {
 
@@ -65,7 +67,7 @@ public class OrderService {
 
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(()
-                        -> new ResourceNotFoundException("Order not found: " + orderId)
+                        -> new ResourceNotFoundException(ORDER_NOT_FOUND + orderId)
                 );
 
         if (order.getStatus() != OrderStatus.CREATED) {
@@ -113,7 +115,7 @@ public class OrderService {
 
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(()
-                        -> new ResourceNotFoundException("Order not found: " + orderId)
+                        -> new ResourceNotFoundException(ORDER_NOT_FOUND + orderId)
                 );
 
         if (order.getStatus() != OrderStatus.CREATED) {
@@ -150,7 +152,7 @@ public class OrderService {
 
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() ->
-                        new ResourceNotFoundException("Order not found: " + orderId)
+                        new ResourceNotFoundException(ORDER_NOT_FOUND + orderId)
                 );
 
         OrderStatus currentStatus = order.getStatus();
@@ -167,7 +169,7 @@ public class OrderService {
 
     public OrderDto findById(Long id) {
         Order order = orderRepository.findById(id).orElseThrow(() ->
-                new ResourceNotFoundException("Order not found: " + id));
+                new ResourceNotFoundException(ORDER_NOT_FOUND + id));
         return orderMapper.toDto(order);
     }
 
@@ -184,7 +186,7 @@ public class OrderService {
 
     public void deleteById(Long id) {
         Order order = orderRepository.findById(id).orElseThrow(() ->
-                new ResourceNotFoundException("Order not found: " + id));
+                new ResourceNotFoundException(ORDER_NOT_FOUND + id));
         orderRepository.deleteById(id);
     }
 

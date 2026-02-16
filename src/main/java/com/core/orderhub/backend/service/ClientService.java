@@ -26,6 +26,8 @@ public class ClientService {
     @Autowired
     private ClientMapper clientMapper;
 
+    private static final String CLIENT_NOT_FOUND = "Client not found: ";
+
     public ClientDto createClient(ClientDto clientDto) {
 
         if (clientRepository.existsByCpf(clientDto.getCpf())) {
@@ -45,7 +47,7 @@ public class ClientService {
 
         Client existingClient = clientRepository.findById(id)
                 .orElseThrow(() ->
-                        new ResourceNotFoundException("Client not found: " + id));
+                        new ResourceNotFoundException(CLIENT_NOT_FOUND + id));
 
         //Precisei setar direto para que o hibernate não crie um novo objeto
         existingClient.setName(clientDto.getName());
@@ -60,7 +62,7 @@ public class ClientService {
     public void updateClientStatus(Long id, ClientStatus newStatus) { //need validations
         Client client = clientRepository.findById(id)
                 .orElseThrow(() ->
-                        new ResourceNotFoundException("Client not found: " + id)
+                        new ResourceNotFoundException(CLIENT_NOT_FOUND + id)
                 );
         ClientStatus oldStatus = client.getStatus();
         client.setStatus(newStatus);
@@ -88,7 +90,7 @@ public class ClientService {
 
     public void deleteById(Long id) {
         Client client = clientRepository.findById(id).orElseThrow(() ->
-                new ResourceNotFoundException("Client not found: " + id));
+                new ResourceNotFoundException(CLIENT_NOT_FOUND + id));
         clientRepository.delete(client);
     }
 
