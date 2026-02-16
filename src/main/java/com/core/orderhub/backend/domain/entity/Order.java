@@ -12,7 +12,7 @@ import java.util.List;
 @Entity
 @Setter
 @Getter
-@Table(name = "orders")  //OrderItem vai representar o produto dentro de um pedido específico.
+@Table(name = "orders")
 public class Order {
 
     @Id
@@ -28,7 +28,7 @@ public class Order {
 
     private LocalDateTime createdAt;
 
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> orderItemList;
 
     @Enumerated(EnumType.STRING)
