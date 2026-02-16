@@ -25,14 +25,14 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class ProductServiceTest {
 
-    @InjectMocks
-    private ProductService productService;
-
     @Mock
     private ProductRepository productRepository;
 
     @Mock
     private ProductMapper productMapper;
+
+    @InjectMocks
+    private ProductService productService;
 
     @Test
     void shouldCreateProductSuccessfully() {
@@ -62,6 +62,7 @@ class ProductServiceTest {
 
         verify(productRepository).save(product);
     }
+
     @Test
     void shouldUpdateProductSuccessfully() {
 
