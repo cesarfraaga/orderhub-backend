@@ -396,9 +396,7 @@ public class OrderServiceTest {
 
     @Test
     void shouldUpdateOrderStatusSuccessfully() {
-
         Long orderId = 1L;
-        OrderStatus newStatus = OrderStatus.PAID;
 
         Order order = new Order();
         order.setId(orderId);
@@ -409,9 +407,9 @@ public class OrderServiceTest {
         when(orderRepository.findById(orderId))
                 .thenReturn(Optional.of(order));
 
-        orderService.updateOrderStatus(orderId, newStatus);
+        orderService.updateOrderStatus(orderId, OrderStatus.PAID);
 
-        verify(orderRepository).save(order);
+        assertEquals(OrderStatus.PAID, order.getStatus());
     }
 
     @Test
