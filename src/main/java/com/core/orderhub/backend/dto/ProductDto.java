@@ -2,13 +2,15 @@ package com.core.orderhub.backend.dto;
 
 import com.core.orderhub.backend.domain.enums.ProductStatus;
 import jakarta.validation.constraints.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.RequiredArgsConstructor;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 
 @Data
-@RequiredArgsConstructor
+@NoArgsConstructor
+@AllArgsConstructor
 public class ProductDto {
 
     private Long id;
