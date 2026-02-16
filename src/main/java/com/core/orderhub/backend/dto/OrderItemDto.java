@@ -2,9 +2,13 @@ package com.core.orderhub.backend.dto;
 
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.math.BigDecimal;
 
+@Getter
+@Setter
 public class OrderItemDto {
 
         @NotNull(message = "product id cannot be null.")
@@ -16,7 +20,9 @@ public class OrderItemDto {
         private Integer quantity;
 
         private String productName;
+
         private BigDecimal unitPrice;
+
         private BigDecimal subtotal;
 
 }
