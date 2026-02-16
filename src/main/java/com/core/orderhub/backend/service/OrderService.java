@@ -185,9 +185,10 @@ public class OrderService {
     }
 
     public void deleteById(Long id) {
-        orderRepository.findById(id).orElseThrow(() ->
-                new ResourceNotFoundException(ORDER_NOT_FOUND + id));
-        orderRepository.deleteById(id);
+        Order order = orderRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(ORDER_NOT_FOUND + id));
+
+        orderRepository.delete(order);
     }
 
     private Client findAndValidateClient(Long clientId) {
