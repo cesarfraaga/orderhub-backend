@@ -94,13 +94,14 @@ public class OrderService {
         orderItem.setUnitPrice(product.getPrice());
         BigDecimal subTotal = orderItem.getUnitPrice().multiply(BigDecimal.valueOf(quantity));
 
-        order.setTotal(order.getTotal().add(subTotal)); //Converti o quantity em bigdecimal
 
         orderItem.setProduct(product);
         orderItem.setQuantity(quantity);
         orderItem.setSubtotal(subTotal);
         orderItem.setOrder(order);
         order.getOrderItemList().add(orderItem);
+
+        order.setTotal(order.getTotal().add(subTotal)); //Converti o quantity em bigdecimal
 
         orderRepository.save(order); //tecnicamente não é necessário, mas mantive por clareza
         logger.info("Item added to order {} | product={} | qty={} | subtotal={}",
@@ -135,9 +136,9 @@ public class OrderService {
             throw new BusinessException("Product not found in order");
         }
 
-        order.setTotal(order.getTotal().subtract(itemToRemove.getSubtotal()));
         itemToRemove.getProduct().setQuantity(itemToRemove.getProduct().getQuantity() + itemToRemove.getQuantity());
         order.getOrderItemList().remove(itemToRemove);
+        order.setTotal(order.getTotal().subtract(itemToRemove.getSubtotal()));
 
         orderRepository.save(order);
         logger.info("Item removed from order {} | product={} | qty={} |",
