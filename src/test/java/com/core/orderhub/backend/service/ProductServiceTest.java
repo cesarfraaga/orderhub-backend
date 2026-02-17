@@ -107,9 +107,11 @@ class ProductServiceTest {
         when(productRepository.findById(productId))
                 .thenReturn(Optional.empty());
 
+        ProductDto productDto = new ProductDto();
+
         assertThrows(
                 ResourceNotFoundException.class,
-                () -> productService.updateProduct(productId, new ProductDto())
+                () -> productService.updateProduct(productId, productDto)
         );
 
         verify(productRepository, never()).save(any());

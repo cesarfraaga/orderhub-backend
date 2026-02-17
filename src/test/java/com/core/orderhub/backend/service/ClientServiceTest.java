@@ -121,9 +121,11 @@ class ClientServiceTest {
         when(clientRepository.findById(clientId))
                 .thenReturn(Optional.empty());
 
+        ClientDto clientDto = new ClientDto();
+
         assertThrows(
                 ResourceNotFoundException.class,
-                () -> clientService.updateClient(clientId, new ClientDto())
+                () -> clientService.updateClient(clientId, clientDto)
         );
 
         verify(clientRepository, never()).save(any());
