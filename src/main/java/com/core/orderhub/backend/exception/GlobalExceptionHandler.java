@@ -43,6 +43,21 @@ public class GlobalExceptionHandler { //intercepta exceções, decide http statu
         return ResponseEntity.badRequest().body(errorMessageDto);
     }
 
+    @ExceptionHandler(ResourceConflictException.class)
+    public ResponseEntity<ErrorMessageDto> handleConflict(
+            ResourceConflictException exception,
+            HttpServletRequest request
+    ) {
+        logger.warn("Resource conflict error: {}", exception.getMessage());
+        ErrorMessageDto errorMessageDto = new ErrorMessageDto(
+                HttpStatus.CONFLICT.value(),
+                exception.getMessage(),
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(errorMessageDto);
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorMessageDto> handleValidation(
             MethodArgumentNotValidException exception,
