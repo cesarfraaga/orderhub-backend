@@ -32,9 +32,8 @@ public class ProductDto {
 
     @NotNull(message = "quantity cannot be null.")
     @Positive(message = "quantity must be greater than zero.")
-    @Max(value = 100, message = "quantity cannot be greater than 1000.")
+    @Max(value = 1000, message = "quantity cannot be greater than 1000.")
     private Integer quantity;
 
     private ProductStatus status;
-
 }
