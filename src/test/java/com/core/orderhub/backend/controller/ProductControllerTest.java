@@ -1,8 +1,6 @@
 package com.core.orderhub.backend.controller;
 
-import com.core.orderhub.backend.domain.enums.ClientStatus;
 import com.core.orderhub.backend.domain.enums.ProductStatus;
-import com.core.orderhub.backend.dto.ClientDto;
 import com.core.orderhub.backend.dto.ProductDto;
 import com.core.orderhub.backend.dto.ProductStatusDto;
 import com.core.orderhub.backend.exception.ResourceNotFoundException;
@@ -164,13 +162,16 @@ class ProductControllerTest {
         Long productId = 1L;
 
         ProductDto productDto = new ProductDto();
+        productDto.setId(productId);
         productDto.setName("Headset Gamer");
+        productDto.setPrice(BigDecimal.valueOf(500.0));
         productDto.setDescription("Headset de alta qualidade");
+        productDto.setQuantity(5);
 
-        when(productService.updateProduct(productId, productDto))
+        when(productService.updateProduct(eq(productId), any(ProductDto.class)))
                 .thenThrow(new ResourceNotFoundException("Product not found"));
 
-        mockMvc.perform(put("/client/{id}", productId)
+        mockMvc.perform(put("/product/{id}", productId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(productDto)))
                 .andExpect(status().isNotFound());
@@ -263,7 +264,7 @@ class ProductControllerTest {
         product1.setStatus(ProductStatus.ACTIVE);
 
         ProductDto product2 = new ProductDto();
-        product2.setId(1L);
+        product2.setId(2L);
         product2.setName("Teclado Gamer");
         product2.setPrice(BigDecimal.valueOf(350.0));
         product2.setDescription("Teclado de alta qualidade");
