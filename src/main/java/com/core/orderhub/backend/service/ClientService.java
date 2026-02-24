@@ -3,7 +3,7 @@ package com.core.orderhub.backend.service;
 import com.core.orderhub.backend.domain.entity.Client;
 import com.core.orderhub.backend.domain.enums.ClientStatus;
 import com.core.orderhub.backend.dto.ClientDto;
-import com.core.orderhub.backend.exception.BusinessException;
+import com.core.orderhub.backend.exception.ResourceConflictException;
 import com.core.orderhub.backend.exception.ResourceNotFoundException;
 import com.core.orderhub.backend.mapper.ClientMapper;
 import com.core.orderhub.backend.repository.ClientRepository;
@@ -31,7 +31,7 @@ public class ClientService {
     public ClientDto createClient(ClientDto clientDto) {
 
         if (clientRepository.existsByCpf(clientDto.getCpf())) {
-            throw new BusinessException("CPF already registered");
+            throw new ResourceConflictException("CPF already registered");
         }
 
         Client client = clientMapper.toEntity(clientDto);
@@ -49,6 +49,10 @@ public class ClientService {
                 .orElseThrow(() ->
                         new ResourceNotFoundException(CLIENT_NOT_FOUND + id));
 
+        if (clientRepository.existsByCpfAndIdNot(clientDto.getCpf(), id)) {
+            throw new ResourceConflictException("CPF already registered");
+        }
+
         //Precisei setar direto para que o hibernate não crie um novo objeto
         existingClient.setName(clientDto.getName());
         existingClient.setCpf(clientDto.getCpf());
@@ -59,7 +63,7 @@ public class ClientService {
     }
 
     @Transactional //ou tudo dá certo ou tudo é desfeito: consistência de dados
-    public void updateClientStatus(Long id, ClientStatus newStatus) { //need validations
+    public void updateClientStatus(Long id, ClientStatus newStatus) { //tenho que mudar pra não poder alterar para o status atual
         Client client = clientRepository.findById(id)
                 .orElseThrow(() ->
                         new ResourceNotFoundException(CLIENT_NOT_FOUND + id)
