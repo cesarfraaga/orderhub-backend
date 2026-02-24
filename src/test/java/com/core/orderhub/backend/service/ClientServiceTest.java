@@ -3,7 +3,7 @@ package com.core.orderhub.backend.service;
 import com.core.orderhub.backend.domain.entity.Client;
 import com.core.orderhub.backend.domain.enums.ClientStatus;
 import com.core.orderhub.backend.dto.ClientDto;
-import com.core.orderhub.backend.exception.BusinessException;
+import com.core.orderhub.backend.exception.ResourceConflictException;
 import com.core.orderhub.backend.exception.ResourceNotFoundException;
 import com.core.orderhub.backend.mapper.ClientMapper;
 import com.core.orderhub.backend.repository.ClientRepository;
@@ -61,7 +61,7 @@ class ClientServiceTest {
     }
 
     @Test
-    void shouldThrowBusinessExceptionWhenCpfAlreadyExists() {
+    void shouldThrowResourceConflictExceptionWhenCpfAlreadyExists() {
 
         ClientDto clientDto = new ClientDto();
         clientDto.setCpf("12345678910");
@@ -70,7 +70,7 @@ class ClientServiceTest {
                 .thenReturn(true);
 
         assertThrows(
-                BusinessException.class,
+                ResourceConflictException.class,
                 () -> clientService.createClient(clientDto)
         );
 
@@ -125,6 +125,35 @@ class ClientServiceTest {
 
         assertThrows(
                 ResourceNotFoundException.class,
+                () -> clientService.updateClient(clientId, clientDto)
+        );
+
+        verify(clientRepository, never()).save(any());
+    }
+
+    @Test
+    void shouldThrowResourceConflictExceptionWhenCpfAlreadyExistsOnUpdateClient() {
+        Long clientId = 1L;
+
+        ClientDto clientDto = new ClientDto();
+        clientDto.setName("César");
+        clientDto.setCpf("12345678910");
+        clientDto.setStatus(ClientStatus.ACTIVE);
+
+        Client existsClient = new Client();
+        existsClient.setId(clientId);
+        existsClient.setName("Kaleb");
+        existsClient.setCpf("12345678910");
+        existsClient.setStatus(ClientStatus.ACTIVE);
+
+        when(clientRepository.findById(clientId))
+                .thenReturn(Optional.of(existsClient));
+
+        when(clientRepository.existsByCpfAndIdNot(clientDto.getCpf(), clientId))
+                .thenReturn(true);
+
+        assertThrows(
+                ResourceConflictException.class,
                 () -> clientService.updateClient(clientId, clientDto)
         );
 
