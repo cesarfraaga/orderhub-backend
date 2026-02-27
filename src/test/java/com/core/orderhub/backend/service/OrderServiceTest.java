@@ -188,9 +188,16 @@ class OrderServiceTest {
         order.setTotal(BigDecimal.ZERO);
         order.setOrderItemList(new ArrayList<>());
 
+        Product product = new Product();
+        product.setId(productId);
+        product.setQuantity(10);
+        product.setStatus(ProductStatus.ACTIVE);
+
         when(orderRepository.findById(orderId))
                 .thenReturn(Optional.of(order));
 
+        when(productRepository.findById(productId))
+                .thenReturn(Optional.of(product));
 
         assertThrows(
                 BusinessException.class,
