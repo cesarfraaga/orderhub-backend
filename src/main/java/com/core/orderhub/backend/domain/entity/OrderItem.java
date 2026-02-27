@@ -30,4 +30,7 @@ public class OrderItem {
 
     private BigDecimal subtotal;
 
+    public BigDecimal getSubtotal() {
+        return unitPrice.multiply(BigDecimal.valueOf(quantity));
+    }
 }

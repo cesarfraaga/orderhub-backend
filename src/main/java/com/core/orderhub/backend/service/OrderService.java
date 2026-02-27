@@ -6,7 +6,6 @@ import com.core.orderhub.backend.domain.entity.OrderItem;
 import com.core.orderhub.backend.domain.entity.Product;
 import com.core.orderhub.backend.domain.enums.ClientStatus;
 import com.core.orderhub.backend.domain.enums.OrderStatus;
-import com.core.orderhub.backend.domain.enums.ProductStatus;
 import com.core.orderhub.backend.dto.OrderDto;
 import com.core.orderhub.backend.exception.BusinessException;
 import com.core.orderhub.backend.exception.ResourceNotFoundException;
@@ -63,49 +62,25 @@ public class OrderService {
     }
 
     @Transactional
-    public OrderDto addOrderItem(Long orderId, Long productId, Integer quantity) {
+    public OrderDto addOrderItem(Long orderId, Long productId, Integer quantity) {//problema: service conhece demais a estrutura interna
 
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(()
                         -> new ResourceNotFoundException(ORDER_NOT_FOUND + orderId)
                 );
 
-        if (order.getStatus() != OrderStatus.CREATED) {
-            throw new BusinessException("Only orders with status CREATED can be modified");
-        }
-
         Product product = productRepository.findById(productId)
                 .orElseThrow(()
                         -> new ResourceNotFoundException("Product not found: " + productId)
                 );
 
-        if (product.getStatus() != ProductStatus.ACTIVE) {
-            throw new BusinessException("Product is not active");
-        }
+        product.decreaseStock(quantity);
 
-        if (quantity > product.getQuantity()) {
-            throw new BusinessException("Product quantity not available. Available: " + product.getQuantity());
-        }
-
-        OrderItem orderItem = new OrderItem();
-
-        product.setQuantity(product.getQuantity() - quantity);
-
-        orderItem.setUnitPrice(product.getPrice());
-        BigDecimal subTotal = orderItem.getUnitPrice().multiply(BigDecimal.valueOf(quantity));
-
-
-        orderItem.setProduct(product);
-        orderItem.setQuantity(quantity);
-        orderItem.setSubtotal(subTotal);
-        orderItem.setOrder(order);
-        order.getOrderItemList().add(orderItem);
-
-        order.setTotal(order.getTotal().add(subTotal)); //Converti o quantity em bigdecimal
+        order.addItem(product, quantity);
 
         orderRepository.save(order); //tecnicamente não é necessário, mas mantive por clareza
-        logger.info("Item added to order {} | product={} | qty={} | subtotal={}",
-                order.getId(), product.getId(), quantity, subTotal
+        logger.info("Item added to order {} | product={} | qty={}",
+                order.getId(), product.getId(), quantity
         );
 
         return orderMapper.toDto(order);

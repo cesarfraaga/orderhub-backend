@@ -1,6 +1,7 @@
 package com.core.orderhub.backend.domain.entity;
 
 import com.core.orderhub.backend.domain.enums.ProductStatus;
+import com.core.orderhub.backend.exception.BusinessException;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -35,4 +36,14 @@ public class Product {
     @Enumerated(EnumType.STRING)
     private ProductStatus status;
 
+    public void decreaseStock(Integer quantity) {
+        if (this.status != ProductStatus.ACTIVE) {
+            throw new BusinessException("Product is not active");
+        }
+
+        if (quantity > this.quantity) {
+            throw new BusinessException("Insufficient stock");
+        }
+        this.quantity -= quantity;
+    }
 }

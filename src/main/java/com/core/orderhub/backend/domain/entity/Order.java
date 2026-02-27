@@ -1,6 +1,7 @@
 package com.core.orderhub.backend.domain.entity;
 
 import com.core.orderhub.backend.domain.enums.OrderStatus;
+import com.core.orderhub.backend.exception.BusinessException;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -34,4 +35,25 @@ public class Order {
     @Enumerated(EnumType.STRING)
     private OrderStatus status;
 
+    public void addItem(Product product, Integer quantity) {
+        if (this.status != OrderStatus.CREATED) {
+            throw new BusinessException("Only orders with status CREATED can be modified");
+        }
+
+        OrderItem orderItem = new OrderItem();
+        orderItem.setProduct(product);
+        orderItem.setQuantity(quantity);
+        orderItem.setUnitPrice(product.getPrice());
+        orderItem.setOrder(this);
+
+        this.orderItemList.add(orderItem);
+
+        this.recalculeTotal();
+    }
+
+    private void recalculeTotal() {
+        this.total = orderItemList.stream()
+                .map(OrderItem::getSubtotal)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
 }
