@@ -46,4 +46,12 @@ public class Product {
         }
         this.quantity -= quantity;
     }
+
+    public void increaseStock(Integer quantity) {
+        this.quantity =+ quantity;
+    }
+
+    public boolean isActive() {
+        return this.status == ProductStatus.ACTIVE;
+    }
 }

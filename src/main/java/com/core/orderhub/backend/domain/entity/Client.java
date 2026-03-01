@@ -27,4 +27,7 @@ public class Client {
     @Enumerated(EnumType.STRING)
     private ClientStatus status;
 
+    public boolean isActive() {
+        return this.status == ClientStatus.ACTIVE;
+    }
 }

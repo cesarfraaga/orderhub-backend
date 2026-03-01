@@ -2,9 +2,7 @@ package com.core.orderhub.backend.service;
 
 import com.core.orderhub.backend.domain.entity.Client;
 import com.core.orderhub.backend.domain.entity.Order;
-import com.core.orderhub.backend.domain.entity.OrderItem;
 import com.core.orderhub.backend.domain.entity.Product;
-import com.core.orderhub.backend.domain.enums.ClientStatus;
 import com.core.orderhub.backend.domain.enums.OrderStatus;
 import com.core.orderhub.backend.dto.OrderDto;
 import com.core.orderhub.backend.exception.BusinessException;
@@ -19,8 +17,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,116 +24,67 @@ import java.util.List;
 public class OrderService {
 
     private static final Logger logger = LoggerFactory.getLogger(OrderService.class);
-
+    private static final String ORDER_NOT_FOUND = "Order not found: ";
     @Autowired
     private OrderRepository orderRepository;
-
     @Autowired
     private OrderMapper orderMapper;
-
     @Autowired
     private ClientRepository clientRepository;
-
     @Autowired
     private ProductRepository productRepository;
-
-    private static final String ORDER_NOT_FOUND = "Order not found: ";
 
     @Transactional
     public OrderDto createOrder(Long clientId) {
 
         Client client = findAndValidateClient(clientId);
 
-        Order order = new Order(); //se eu for instanciar um objeto e precisar setar todos os atributos dele logo em seguida, é melhor instanciar ele já com os atributos
-
-        order.setClient(client);
-        order.setStatus(OrderStatus.CREATED);
-        order.setTotal(BigDecimal.ZERO);
-        order.setCreatedAt(LocalDateTime.now());
+        Order order = new Order(client);
 
         Order savedOrder = orderRepository.save(order);
         logger.info("Creating order... id={}", savedOrder.getId());
         return orderMapper.toDto(savedOrder);
-
     }
 
     @Transactional
-    public OrderDto addOrderItem(Long orderId, Long productId, Integer quantity) {//problema: service conhece demais a estrutura interna
+    public OrderDto addOrderItem(Long orderId, Long productId, Integer quantity) {
 
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(()
-                        -> new ResourceNotFoundException(ORDER_NOT_FOUND + orderId)
-                );
+        Order order = findOrder(orderId);
 
-        Product product = productRepository.findById(productId)
-                .orElseThrow(()
-                        -> new ResourceNotFoundException("Product not found: " + productId)
-                );
-
-        product.decreaseStock(quantity);
+        Product product = findProduct(productId);
 
         order.addItem(product, quantity);
 
-        orderRepository.save(order); //tecnicamente não é necessário, mas mantive por clareza
         logger.info("Item added to order {} | product={} | qty={}",
                 order.getId(), product.getId(), quantity
         );
-
         return orderMapper.toDto(order);
     }
 
     @Transactional
     public void removeOrderItem(Long orderId, Long productId) {
 
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(()
-                        -> new ResourceNotFoundException(ORDER_NOT_FOUND + orderId)
-                );
+        Order order = findOrder(orderId);
 
-        if (order.getStatus() != OrderStatus.CREATED) {
-            throw new BusinessException("Only orders with status CREATED can be modified");
-        }
+        Product product = findProduct(productId);
 
-        OrderItem itemToRemove = null;
+        order.removeItem(product);
 
-        for (OrderItem orderItem : order.getOrderItemList()) {
-            if (orderItem.getProduct().getId().equals(productId)) {
-                itemToRemove = orderItem;
-                break;
-            }
-        }
-
-        if (itemToRemove == null) {
-            throw new BusinessException("Product not found in order");
-        }
-
-        itemToRemove.getProduct().setQuantity(itemToRemove.getProduct().getQuantity() + itemToRemove.getQuantity());
-        order.getOrderItemList().remove(itemToRemove);
-        order.setTotal(order.getTotal().subtract(itemToRemove.getSubtotal()));
-
-        orderRepository.save(order);
-        logger.info("Item removed from order {} | product={} | qty={} |",
+        logger.info("Item removed from order {} | product={}",
                 order.getId(),
-                itemToRemove.getProduct().getId(),
-                itemToRemove.getQuantity()
+                product.getId()
         );
     }
 
     @Transactional
     public void updateOrderStatus(Long orderId, OrderStatus newStatus) {
 
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(ORDER_NOT_FOUND + orderId)
-                );
+        Order order = findOrder(orderId);
 
         OrderStatus currentStatus = order.getStatus();
 
-        if (!currentStatus.canTransitionTo(newStatus)) {
-            throw new BusinessException("Cannot change order status from " + currentStatus + " to " + newStatus);
-        }
+        order.changeStatus(newStatus);
 
-        order.setStatus(newStatus);
         logger.info("Updated order {} status from {} to {}",
                 order.getId(), currentStatus, newStatus
         );
@@ -150,21 +97,32 @@ public class OrderService {
     }
 
     public List<OrderDto> findAll() {
-        List<Order> orderList = orderRepository.findAll();
-        List<OrderDto> orderDtoList = new ArrayList<>();
-
-        for (Order order : orderList) {
-            OrderDto orderDto = orderMapper.toDto(order);
-            orderDtoList.add(orderDto);
-        }
-        return orderDtoList;
+        return orderRepository.findAll()
+                .stream()
+                .map(orderMapper::toDto)
+                .toList();
     }
 
     public void deleteById(Long id) {
-        Order order = orderRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException(ORDER_NOT_FOUND + id));
+        if (!orderRepository.existsById(id)) {
+            throw new ResourceNotFoundException(ORDER_NOT_FOUND + id);
+        }
 
-        orderRepository.delete(order);
+        orderRepository.deleteById(id);
+    }
+
+    private Product findProduct(Long productId) {
+        return productRepository.findById(productId)
+                .orElseThrow(()
+                        -> new ResourceNotFoundException("Product not found: " + productId)
+                );
+    }
+
+    private Order findOrder(Long orderId) {
+        return orderRepository.findById(orderId)
+                .orElseThrow(()
+                        -> new ResourceNotFoundException(ORDER_NOT_FOUND + orderId)
+                );
     }
 
     private Client findAndValidateClient(Long clientId) {
@@ -172,8 +130,8 @@ public class OrderService {
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Client not found: " + clientId));
 
-        if (client.getStatus() != ClientStatus.ACTIVE) {
-            throw new BusinessException("Client is not active");
+        if (!client.isActive()) {
+            throw new BusinessException("Client is not Active");
         }
         return client;
     }

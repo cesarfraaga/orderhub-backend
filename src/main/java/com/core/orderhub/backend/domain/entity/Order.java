@@ -4,6 +4,7 @@ import com.core.orderhub.backend.domain.enums.OrderStatus;
 import com.core.orderhub.backend.exception.BusinessException;
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
@@ -14,6 +15,7 @@ import java.util.List;
 @Setter
 @Getter
 @Table(name = "orders")
+@NoArgsConstructor
 public class Order {
 
     @Id
@@ -35,9 +37,18 @@ public class Order {
     @Enumerated(EnumType.STRING)
     private OrderStatus status;
 
+    public Order(Client client) {
+        this.setClient(client);
+        this.setStatus(OrderStatus.CREATED);
+        this.setTotal(BigDecimal.ZERO);
+        this.setCreatedAt(LocalDateTime.now());
+    }
+
     public void addItem(Product product, Integer quantity) {
-        if (this.status != OrderStatus.CREATED) {
-            throw new BusinessException("Only orders with status CREATED can be modified");
+        validateOrderIsCreated();
+
+        if (quantity == null || quantity <= 0) {
+            throw new BusinessException("Quantity must be greater than zero");
         }
 
         OrderItem orderItem = new OrderItem();
@@ -46,12 +57,49 @@ public class Order {
         orderItem.setUnitPrice(product.getPrice());
         orderItem.setOrder(this);
 
-        this.orderItemList.add(orderItem);
+        product.decreaseStock(orderItem.getQuantity());
 
-        this.recalculeTotal();
+        this.orderItemList.add(orderItem);
+        this.recalculateTotal();
     }
 
-    private void recalculeTotal() {
+    public void removeItem(Product product) {
+
+        validateOrderIsCreated();
+
+        OrderItem itemToRemove = this.orderItemList.stream()
+                .filter(item -> item.getProduct().getId().equals(product.getId()))
+                .findFirst()
+                .orElseThrow(() ->
+                        new BusinessException("Product not found in order")
+                );
+
+        product.increaseStock(itemToRemove.getQuantity());
+
+        this.orderItemList.remove(itemToRemove);
+        this.recalculateTotal();
+    }
+
+    public boolean isCreated() {
+        return this.status == OrderStatus.CREATED;
+    }
+
+    public void changeStatus(OrderStatus newStatus) {
+        if (!this.status.canTransitionTo(newStatus)) {
+            throw new BusinessException(
+                    "Cannot change order status from " + this.status + " to " + newStatus
+            );
+        }
+        this.status = newStatus;
+    }
+
+    private void validateOrderIsCreated() {
+        if (!this.isCreated()) {
+            throw new BusinessException("Only orders with status CREATED can be modified");
+        }
+    }
+
+    private void recalculateTotal() {
         this.total = orderItemList.stream()
                 .map(OrderItem::getSubtotal)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);

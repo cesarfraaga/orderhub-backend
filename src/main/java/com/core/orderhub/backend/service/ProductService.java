@@ -29,7 +29,6 @@ public class ProductService {
 
     public ProductDto createProduct(ProductDto productDto) {
 
-
         Product product = productMapper.toEntity(productDto);
 
         product.setStatus(ProductStatus.ACTIVE);
@@ -39,7 +38,7 @@ public class ProductService {
         return productMapper.toDto(savedProduct);
     }
 
-    public ProductDto updateProduct(Long id, ProductDto productDto) {
+    public ProductDto updateProduct(Long id, ProductDto productDto) { //preciso atualizar os dados parcialmente também
 
         Product existingProduct = productRepository.findById(id)
                 .orElseThrow(() ->
@@ -75,7 +74,7 @@ public class ProductService {
     public List<ProductDto> findAll() {
         List<Product> productList = productRepository.findAll(); //Usar stream
         List<ProductDto> productDtoList = new ArrayList<>();
-        //Lista vazia não é erro
+
         for (Product product : productList) {
             ProductDto productDto = productMapper.toDto(product);
             productDtoList.add(productDto);
