@@ -48,7 +48,7 @@ public class Product {
     }
 
     public void increaseStock(Integer quantity) {
-        this.quantity =+ quantity;
+        this.quantity += quantity;
     }
 
     public boolean isActive() {
