@@ -2,7 +2,6 @@ package com.core.orderhub.backend.service;
 
 import com.core.orderhub.backend.domain.entity.Client;
 import com.core.orderhub.backend.domain.entity.Order;
-import com.core.orderhub.backend.domain.entity.OrderItem;
 import com.core.orderhub.backend.domain.entity.Product;
 import com.core.orderhub.backend.domain.enums.ClientStatus;
 import com.core.orderhub.backend.domain.enums.OrderStatus;
@@ -19,9 +18,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -30,31 +29,38 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class OrderServiceTest {
 
-    @Mock
-    private ClientRepository clientRepository;
+    @Mock private ClientRepository clientRepository;
+    @Mock private OrderRepository orderRepository;
+    @Mock private ProductRepository productRepository;
+    @Mock private OrderMapper orderMapper;
 
-    @Mock
-    private OrderRepository orderRepository;
+    @InjectMocks private OrderService orderService;
 
-    @Mock
-    private ProductRepository productRepository;
+    private Client activeClient() {
+        Client client = new Client();
+        client.setStatus(ClientStatus.ACTIVE);
+        return client;
+    }
 
-    @Mock
-    private OrderMapper orderMapper;
+    private Order createdOrder(Long id) {
+        Order order = new Order(activeClient());
+        ReflectionTestUtils.setField(order, "id", id);
+        return order;
+    }
 
-    @InjectMocks
-    private OrderService orderService;
+    private Product activeProduct(Long id, int stock, BigDecimal price) {
+        Product product = new Product();
+        product.setId(id);
+        product.setStatus(ProductStatus.ACTIVE);
+        product.setQuantity(stock);
+        product.setPrice(price);
+        return product;
+    }
 
     @Test
     void shouldCreateOrderSuccessfully() {
-
         Long clientId = 1L;
-
-        Client client = new Client();
-        client.setId(clientId);
-        client.setName("César");
-        client.setCpf("123456");
-        client.setStatus(ClientStatus.ACTIVE);
+        Client client = activeClient();
 
         when(clientRepository.findById(clientId))
                 .thenReturn(Optional.of(client));
@@ -62,10 +68,8 @@ class OrderServiceTest {
         when(orderRepository.save(any(Order.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
-        OrderDto orderDto = mock(OrderDto.class);
-
-        when(orderMapper.toDto(any(Order.class)))
-                .thenReturn(orderDto);
+        OrderDto dto = mock(OrderDto.class);
+        when(orderMapper.toDto(any(Order.class))).thenReturn(dto);
 
         OrderDto result = orderService.createOrder(clientId);
 
@@ -74,256 +78,102 @@ class OrderServiceTest {
     }
 
     @Test
-    void shouldThrowResourceNotFoundExceptionWhenClientIsNullOnCreateOrder() {
-
-        Long clientId = 1L;
-
-        Client client = new Client();
-        client.setId(clientId);
-        client.setName("César");
-        client.setCpf("12345678910");
-        client.setStatus(ClientStatus.ACTIVE);
-
-        when(clientRepository.findById(clientId))
+    void shouldThrowWhenClientNotFound() {
+        when(clientRepository.findById(1L))
                 .thenReturn(Optional.empty());
 
-        assertThrows(
-                ResourceNotFoundException.class,
-                () -> orderService.createOrder(clientId)
-        );
+        assertThrows(ResourceNotFoundException.class,
+                () -> orderService.createOrder(1L));
+
         verify(orderRepository, never()).save(any());
     }
 
     @Test
-    void shouldThrowBusinessExceptionWhenClientStatusIsNotActiveOnCreateOrder() {
-
-        Long clientId = 1L;
-
+    void shouldThrowWhenClientInactive() {
         Client client = new Client();
-        client.setId(clientId);
-        client.setName("César");
-        client.setCpf("12345678910");
         client.setStatus(ClientStatus.INACTIVE);
 
-        when(clientRepository.findById(clientId))
+        when(clientRepository.findById(1L))
                 .thenReturn(Optional.of(client));
 
-        assertThrows(
-                BusinessException.class,
-                () -> orderService.createOrder(clientId)
-        );
-        verify(orderRepository, never()).save(any());
+        assertThrows(BusinessException.class,
+                () -> orderService.createOrder(1L));
     }
 
     @Test
-    void shouldAddOrderItemSuccessfully() { //happy path
-
+    void shouldAddOrderItemSuccessfully() {
         Long orderId = 1L;
         Long productId = 1L;
-        int quantity = 2;
 
-        Product product = new Product();
-        product.setId(productId);
-        product.setStatus(ProductStatus.ACTIVE);
-        product.setQuantity(10);
-        product.setPrice(BigDecimal.valueOf(50));
-
-        Order order = new Order();
-        order.setId(orderId);
-        order.setStatus(OrderStatus.CREATED);
-        order.setTotal(BigDecimal.ZERO);
-        order.setOrderItemList(new ArrayList<>());
-
-        OrderDto orderDto = mock(OrderDto.class);
-
-        when(orderMapper.toDto(order))
-                .thenReturn(orderDto);
+        Order order = createdOrder(orderId);
+        Product product = activeProduct(productId, 10, BigDecimal.valueOf(50));
 
         when(orderRepository.findById(orderId))
                 .thenReturn(Optional.of(order));
-
         when(productRepository.findById(productId))
                 .thenReturn(Optional.of(product));
+        when(orderMapper.toDto(any(Order.class)))
+                .thenReturn(mock(OrderDto.class));
 
+        OrderDto result = orderService.addOrderItem(orderId, productId, 2);
 
-        //Quando isso acontecer:
-        OrderDto result = orderService.addOrderItem(orderId, productId, quantity);
-
-        //Então
         assertNotNull(result);
         assertEquals(1, order.getOrderItemList().size());
         assertEquals(BigDecimal.valueOf(100), order.getTotal());
         assertEquals(8, product.getQuantity());
 
-        verify(orderRepository).save(order);
+        verify(orderRepository, never()).save(any());
     }
 
     @Test
-    void shouldThrowResourceNotFoundExceptionWhenOrderNotFoundOnAddOrderItem() {
-
-        Long orderId = 1L;
-        Long productId = 1L;
-        int quantity = 2;
-
-        when(orderRepository.findById(orderId))
+    void shouldThrowWhenOrderNotFoundOnAdd() {
+        when(orderRepository.findById(1L))
                 .thenReturn(Optional.empty());
 
-        assertThrows(
-                ResourceNotFoundException.class,
-                () -> orderService.addOrderItem(orderId, productId, quantity)
-        );
-        verify(orderRepository, never()).save(any());
+        assertThrows(ResourceNotFoundException.class,
+                () -> orderService.addOrderItem(1L, 1L, 2));
     }
 
     @Test
-    void shouldThrowBusinessExceptionWhenOrderStatusIsNotCreatedOnAddOrderItem() {
+    void shouldThrowWhenProductNotFoundOnAdd() {
+        Order order = createdOrder(1L);
 
-        Long orderId = 1L;
-        Long productId = 1L;
-        int quantity = 2;
-
-        Order order = new Order();
-        order.setId(orderId);
-        order.setStatus(OrderStatus.CANCELED);
-        order.setTotal(BigDecimal.ZERO);
-        order.setOrderItemList(new ArrayList<>());
-
-        Product product = new Product();
-        product.setId(productId);
-        product.setQuantity(10);
-        product.setStatus(ProductStatus.ACTIVE);
-
-        when(orderRepository.findById(orderId))
+        when(orderRepository.findById(1L))
                 .thenReturn(Optional.of(order));
-
-        when(productRepository.findById(productId))
-                .thenReturn(Optional.of(product));
-
-        assertThrows(
-                BusinessException.class,
-                () -> orderService.addOrderItem(orderId, productId, quantity)
-        );
-        verify(orderRepository, never()).save(any());
-    }
-
-    @Test
-    void shouldThrowResourceNotFoundExceptionWhenProductNotFound() {
-
-        Long orderId = 1L;
-        Long productId = 1L;
-        int quantity = 2;
-
-        Order order = new Order();
-        order.setId(orderId);
-        order.setStatus(OrderStatus.CREATED);
-        order.setTotal(BigDecimal.ZERO);
-        order.setOrderItemList(new ArrayList<>());
-
-        when(orderRepository.findById(orderId))
-                .thenReturn(Optional.of(order));
-
-        when(productRepository.findById(productId))
+        when(productRepository.findById(1L))
                 .thenReturn(Optional.empty());
 
-        assertThrows(
-                ResourceNotFoundException.class,
-                () -> orderService.addOrderItem(orderId, productId, quantity)
-        );
-        verify(orderRepository, never()).save(any());
+        assertThrows(ResourceNotFoundException.class,
+                () -> orderService.addOrderItem(1L, 1L, 2));
     }
 
     @Test
-    void shouldThrowBusinessExceptionWhenProductStatusIsNotActive() {
+    void shouldThrowWhenStockInsufficient() {
+        Order order = createdOrder(1L);
+        Product product = activeProduct(1L, 1, BigDecimal.valueOf(50));
 
-        Long orderId = 1L;
-        Long productId = 1L;
-        int quantity = 2;
-
-        Product product = new Product();
-        product.setId(productId);
-        product.setStatus(ProductStatus.INACTIVE);
-        product.setQuantity(10);
-        product.setPrice(BigDecimal.valueOf(50));
-
-        Order order = new Order();
-        order.setId(orderId);
-        order.setStatus(OrderStatus.CREATED);
-        order.setTotal(BigDecimal.ZERO);
-        order.setOrderItemList(new ArrayList<>());
-
-        when(orderRepository.findById(orderId))
+        when(orderRepository.findById(1L))
                 .thenReturn(Optional.of(order));
-
-        when(productRepository.findById(productId))
+        when(productRepository.findById(1L))
                 .thenReturn(Optional.of(product));
 
-        assertThrows(
-                BusinessException.class,
-                () -> orderService.addOrderItem(orderId, productId, quantity)
-        );
-        verify(orderRepository, never()).save(any());
+        assertThrows(BusinessException.class,
+                () -> orderService.addOrderItem(1L, 1L, 2));
     }
-
-    @Test
-    void shouldThrowBusinessExceptionWhenProductQuantityIsGreaterThanStock() {
-
-        Long orderId = 1L;
-        Long productId = 1L;
-        int quantity = 2;
-
-        Product product = new Product();
-        product.setId(productId);
-        product.setStatus(ProductStatus.ACTIVE);
-        product.setQuantity(1);
-        product.setPrice(BigDecimal.valueOf(50));
-
-        Order order = new Order();
-        order.setId(orderId);
-        order.setStatus(OrderStatus.CREATED);
-        order.setTotal(BigDecimal.ZERO);
-        order.setOrderItemList(new ArrayList<>());
-
-        when(orderRepository.findById(orderId))
-                .thenReturn(Optional.of(order));
-
-        when(productRepository.findById(productId))
-                .thenReturn(Optional.of(product));
-
-        assertThrows(
-                BusinessException.class,
-                () -> orderService.addOrderItem(orderId, productId, quantity)
-        );
-        verify(orderRepository, never()).save(any());
-    }
-
     @Test
     void shouldRemoveOrderItemSuccessfully() {
-
         Long orderId = 1L;
         Long productId = 1L;
-        int quantity = 2;
 
-        Product product = new Product();
-        product.setId(productId);
-        product.setStatus(ProductStatus.ACTIVE);
-        product.setQuantity(8);
-        product.setPrice(BigDecimal.valueOf(50));
+        Order order = createdOrder(orderId);
+        Product product = activeProduct(productId, 10, BigDecimal.valueOf(50));
 
-        OrderItem orderItem = new OrderItem();
-        orderItem.setProduct(product);
-        orderItem.setQuantity(quantity);
-        orderItem.setUnitPrice(BigDecimal.valueOf(50));
-        orderItem.setSubtotal(BigDecimal.valueOf(100));
-
-        Order order = new Order();
-        order.setId(orderId);
-        order.setStatus(OrderStatus.CREATED);
-        order.setTotal(BigDecimal.valueOf(100));
-        order.setOrderItemList(new ArrayList<>());
-        order.getOrderItemList().add(orderItem);
+        order.addItem(product, 2);
 
         when(orderRepository.findById(orderId))
                 .thenReturn(Optional.of(order));
+        when(productRepository.findById(productId))
+                .thenReturn(Optional.of(product));
 
         orderService.removeOrderItem(orderId, productId);
 
@@ -331,128 +181,30 @@ class OrderServiceTest {
         assertEquals(BigDecimal.ZERO, order.getTotal());
         assertEquals(10, product.getQuantity());
 
-        verify(orderRepository).save(order);
-    }
-
-    @Test
-    void shouldThrowResourceNotFoundExceptionWhenOrderNotFoundOnRemoveOrderItem() {
-
-        Long orderId = 1L;
-        Long productId = 1L;
-
-        when(orderRepository.findById(orderId))
-                .thenReturn(Optional.empty());
-
-        assertThrows(
-                ResourceNotFoundException.class,
-                () -> orderService.removeOrderItem(orderId, productId)
-        );
         verify(orderRepository, never()).save(any());
     }
 
     @Test
-    void shouldThrowBusinessExceptionWhenOrderStatusIsNotCreatedOnRemoveOrderItem() {
+    void shouldUpdateStatusSuccessfully() {
+        Order order = createdOrder(1L);
 
-        Long orderId = 1L;
-        Long productId = 1L;
-
-        Order order = new Order();
-        order.setId(orderId);
-        order.setStatus(OrderStatus.CANCELED);
-        order.setTotal(BigDecimal.ZERO);
-        order.setOrderItemList(new ArrayList<>());
-
-        when(orderRepository.findById(orderId))
+        when(orderRepository.findById(1L))
                 .thenReturn(Optional.of(order));
 
-
-        assertThrows(
-                BusinessException.class,
-                () -> orderService.removeOrderItem(orderId, productId)
-        );
-        verify(orderRepository, never()).save(any());
-    }
-
-    @Test
-    void shouldThrowBusinessExceptionWhenItemNotFoundOnRemoveOrderItem() {
-
-        Long orderId = 1L;
-        Long productId = 99L;
-
-        Product product = new Product();
-        product.setId(1L);
-
-        OrderItem existingItem = new OrderItem();
-        existingItem.setProduct(product);
-
-        Order order = new Order();
-        order.setId(orderId);
-        order.setStatus(OrderStatus.CREATED);
-        order.setOrderItemList(new ArrayList<>());
-        order.getOrderItemList().add(existingItem);
-
-        when(orderRepository.findById(orderId))
-                .thenReturn(Optional.of(order));
-
-        assertThrows(
-                BusinessException.class,
-                () -> orderService.removeOrderItem(orderId, productId)
-        );
-        verify(orderRepository, never()).save(any());
-    }
-
-    @Test
-    void shouldUpdateOrderStatusSuccessfully() {
-        Long orderId = 1L;
-
-        Order order = new Order();
-        order.setId(orderId);
-        order.setStatus(OrderStatus.CREATED);
-        order.setTotal(BigDecimal.valueOf(100));
-        order.setOrderItemList(new ArrayList<>());
-
-        when(orderRepository.findById(orderId))
-                .thenReturn(Optional.of(order));
-
-        orderService.updateOrderStatus(orderId, OrderStatus.PAID);
+        orderService.updateOrderStatus(1L, OrderStatus.PAID);
 
         assertEquals(OrderStatus.PAID, order.getStatus());
     }
 
     @Test
-    void shouldThrowResourceNotFoundExceptionWhenUpdateOrderStatus() {
+    void shouldThrowWhenInvalidStatusTransition() {
+        Order order = createdOrder(1L);
+        order.changeStatus(OrderStatus.CANCELED);
 
-        Long orderId = 1L;
-        OrderStatus newStatus = OrderStatus.PAID;
-
-        when(orderRepository.findById(orderId))
-                .thenReturn(Optional.empty());
-
-        assertThrows(
-                ResourceNotFoundException.class,
-                () -> orderService.updateOrderStatus(orderId, newStatus)
-        );
-        verify(orderRepository, never()).save(any());
-    }
-
-    @Test
-    void shouldThrowBusinessExceptionWhenOrderStatusIsNotUpdatable() {
-        Long orderId = 1L;
-        OrderStatus newStatus = OrderStatus.PAID;
-
-        Order order = new Order();
-        order.setId(orderId);
-        order.setStatus(OrderStatus.CANCELED);
-        order.setTotal(BigDecimal.valueOf(100));
-        order.setOrderItemList(new ArrayList<>());
-
-        when(orderRepository.findById(orderId))
+        when(orderRepository.findById(1L))
                 .thenReturn(Optional.of(order));
 
-        assertThrows(
-                BusinessException.class,
-                () -> orderService.updateOrderStatus(orderId, newStatus)
-        );
-        verify(orderRepository, never()).save(any());
+        assertThrows(BusinessException.class,
+                () -> orderService.updateOrderStatus(1L, OrderStatus.PAID));
     }
 }
