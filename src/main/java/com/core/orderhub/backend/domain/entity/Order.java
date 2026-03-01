@@ -5,14 +5,12 @@ import com.core.orderhub.backend.exception.BusinessException;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
-@Setter
 @Getter
 @Table(name = "orders")
 @NoArgsConstructor
@@ -38,10 +36,10 @@ public class Order {
     private OrderStatus status;
 
     public Order(Client client) {
-        this.setClient(client);
-        this.setStatus(OrderStatus.CREATED);
-        this.setTotal(BigDecimal.ZERO);
-        this.setCreatedAt(LocalDateTime.now());
+        this.client = client;
+        this.status = OrderStatus.CREATED;
+        this.total = BigDecimal.ZERO;
+        this.createdAt = LocalDateTime.now();
     }
 
     public void addItem(Product product, Integer quantity) {
