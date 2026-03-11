@@ -1,6 +1,7 @@
 package com.core.orderhub.backend.domain.entity;
 
 import com.core.orderhub.backend.domain.enums.ProductStatus;
+import com.core.orderhub.backend.dto.ProductDto;
 import com.core.orderhub.backend.exception.BusinessException;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -51,6 +52,12 @@ public class Product {
         this.quantity += quantity;
     }
 
+    public void update(ProductDto dto) {
+        this.name = dto.getName();
+        this.price = dto.getPrice();
+        this.description = dto.getDescription();
+        this.quantity = dto.getQuantity();
+    }
     public boolean isActive() {
         return this.status == ProductStatus.ACTIVE;
     }
