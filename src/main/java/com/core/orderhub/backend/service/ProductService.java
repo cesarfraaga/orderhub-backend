@@ -12,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -44,9 +43,7 @@ public class ProductService {
                 .orElseThrow(() ->
                         new ResourceNotFoundException(PRODUCT_NOT_FOUND + id));
 
-        existingProduct.setName(productDto.getName());
-        existingProduct.setPrice(productDto.getPrice());
-        existingProduct.setDescription(productDto.getDescription());
+        existingProduct.update(productDto);
 
         Product savedProduct = productRepository.save(existingProduct);
         logger.info("Updating product... id={}", existingProduct.getId());
@@ -60,7 +57,7 @@ public class ProductService {
                         new ResourceNotFoundException(PRODUCT_NOT_FOUND + id)
                 );
         ProductStatus oldStatus = product.getStatus();
-        product.setStatus(newStatus);
+        product.setStatus(newStatus); //Encapsulamento / Essa responsabilidade deve ser do domínio
         logger.info("Product {} status changed from {} to {}", id, oldStatus, newStatus);
     }
 
@@ -72,14 +69,10 @@ public class ProductService {
     }
 
     public List<ProductDto> findAll() {
-        List<Product> productList = productRepository.findAll(); //Usar stream
-        List<ProductDto> productDtoList = new ArrayList<>();
-
-        for (Product product : productList) {
-            ProductDto productDto = productMapper.toDto(product);
-            productDtoList.add(productDto);
-        }
-        return productDtoList;
+        return productRepository.findAll()
+                .stream()
+                .map(productMapper::toDto)
+                .toList();
     }
 
     public void deleteById(Long id) {

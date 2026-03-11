@@ -13,7 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -82,14 +81,10 @@ public class ClientService {
     }
 
     public List<ClientDto> findAll() {
-        List<Client> clientList = clientRepository.findAll();
-        List<ClientDto> clientDtoList = new ArrayList<>();
-
-        for (Client client : clientList) {
-            ClientDto clientDto = clientMapper.toDto(client);
-            clientDtoList.add(clientDto);
-        }
-        return clientDtoList;
+        return clientRepository.findAll()
+                .stream()
+                .map(clientMapper::toDto)
+                .toList();
     }
 
     public void deleteById(Long id) {
@@ -97,5 +92,4 @@ public class ClientService {
                 new ResourceNotFoundException(CLIENT_NOT_FOUND + id));
         clientRepository.delete(client);
     }
-
 }
