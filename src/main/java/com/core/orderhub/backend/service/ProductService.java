@@ -30,7 +30,7 @@ public class ProductService {
 
         Product product = productMapper.toEntity(productDto);
 
-        product.setStatus(ProductStatus.ACTIVE);
+        product.changeStatus(ProductStatus.ACTIVE);
 
         Product savedProduct = productRepository.save(product);
         logger.info("Creating product... id={}", product.getId());
@@ -57,7 +57,7 @@ public class ProductService {
                         new ResourceNotFoundException(PRODUCT_NOT_FOUND + id)
                 );
         ProductStatus oldStatus = product.getStatus();
-        product.setStatus(newStatus); //Encapsulamento / Essa responsabilidade deve ser do domínio
+        product.changeStatus(newStatus);
         logger.info("Product {} status changed from {} to {}", id, oldStatus, newStatus);
     }
 

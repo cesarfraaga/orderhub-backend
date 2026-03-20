@@ -11,7 +11,6 @@ import lombok.Setter;
 import java.math.BigDecimal;
 
 @Getter
-@Setter
 @NoArgsConstructor
 @Entity
 @Table(name = "products")
@@ -57,6 +56,10 @@ public class Product {
         this.price = dto.getPrice();
         this.description = dto.getDescription();
         this.quantity = dto.getQuantity();
+    }
+
+    public void changeStatus(ProductStatus newStatus) {
+        this.status = newStatus;
     }
     public boolean isActive() {
         return this.status == ProductStatus.ACTIVE;

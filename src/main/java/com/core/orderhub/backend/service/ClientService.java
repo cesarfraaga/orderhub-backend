@@ -35,13 +35,14 @@ public class ClientService {
 
         Client client = clientMapper.toEntity(clientDto);
 
-        client.setStatus(ClientStatus.ACTIVE);
+        client.changeStatus(ClientStatus.ACTIVE);
 
         Client savedClient = clientRepository.save(client);
         logger.info("Creating client... id={}", client.getId());
         return clientMapper.toDto(savedClient);
     }
 
+    @Transactional
     public ClientDto updateClient(Long id, ClientDto clientDto) {
 
         Client existingClient = clientRepository.findById(id)
@@ -52,13 +53,11 @@ public class ClientService {
             throw new ResourceConflictException("CPF already registered");
         }
 
-        //Precisei setar direto para que o hibernate não crie um novo objeto
-        existingClient.setName(clientDto.getName());
-        existingClient.setCpf(clientDto.getCpf());
+        existingClient.update(clientDto);
 
-        Client savedClient = clientRepository.save(existingClient);
         logger.info("Updating client... id={}", existingClient.getId());
-        return clientMapper.toDto(savedClient);
+
+        return clientMapper.toDto(existingClient);
     }
 
     @Transactional //ou tudo dá certo ou tudo é desfeito: consistência de dados
@@ -68,7 +67,7 @@ public class ClientService {
                         new ResourceNotFoundException(CLIENT_NOT_FOUND + id)
                 );
         ClientStatus oldStatus = client.getStatus();
-        client.setStatus(newStatus);
+        client.changeStatus(newStatus);
         logger.info("Client {} status changed from {} to {}", id, oldStatus,newStatus);
     }
 
