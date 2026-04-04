@@ -43,10 +43,8 @@ class ClientServiceTest {
         Client client = new Client();
 
         Client savedClient = new Client();
-        savedClient.setId(1L);
 
         ClientDto responseDto = new ClientDto();
-        responseDto.setId(1L);
 
         when(clientMapper.toEntity(clientDto)).thenReturn(client);
         when(clientRepository.save(client)).thenReturn(savedClient);
@@ -82,14 +80,12 @@ class ClientServiceTest {
         Long clientId = 1L;
 
         Client existingClient = new Client();
-        existingClient.setId(clientId);
 
         ClientDto updateDto = new ClientDto();
         updateDto.setName("Novo nome");
         updateDto.setCpf("10987654321");
 
         Client savedClient = new Client();
-        savedClient.setId(clientId);
 
         ClientDto outputDto = new ClientDto();
         outputDto.setId(clientId);
@@ -141,10 +137,6 @@ class ClientServiceTest {
         clientDto.setStatus(ClientStatus.ACTIVE);
 
         Client existsClient = new Client();
-        existsClient.setId(clientId);
-        existsClient.setName("Kaleb");
-        existsClient.setCpf("12345678910");
-        existsClient.setStatus(ClientStatus.ACTIVE);
 
         when(clientRepository.findById(clientId))
                 .thenReturn(Optional.of(existsClient));
@@ -166,8 +158,6 @@ class ClientServiceTest {
         Long clientId = 1L;
 
         Client client = new Client();
-        client.setId(clientId);
-        client.setStatus(ClientStatus.ACTIVE);
 
         when(clientRepository.findById(clientId))
                 .thenReturn(Optional.of(client));
@@ -197,7 +187,6 @@ class ClientServiceTest {
         Long clientId = 1L;
 
         Client client = new Client();
-        client.setId(clientId);
 
         ClientDto dto = new ClientDto();
         dto.setId(clientId);
@@ -262,7 +251,6 @@ class ClientServiceTest {
         Long clientId = 1L;
 
         Client client = new Client();
-        client.setId(clientId);
 
         when(clientRepository.findById(clientId))
                 .thenReturn(Optional.of(client));

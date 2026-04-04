@@ -46,7 +46,6 @@ class ProductServiceTest {
         Product product = new Product();
 
         Product savedProduct = new Product();
-        savedProduct.setId(1L);
 
         ProductDto outputDto = new ProductDto();
         outputDto.setId(1L);
@@ -69,7 +68,6 @@ class ProductServiceTest {
         Long productId = 1L;
 
         Product existingProduct = new Product();
-        existingProduct.setId(productId);
 
         ProductDto updateDto = new ProductDto();
         updateDto.setName("Novo nome");
@@ -77,7 +75,6 @@ class ProductServiceTest {
         updateDto.setDescription("Nova descrição");
 
         Product savedProduct = new Product();
-        savedProduct.setId(productId);
 
         ProductDto outputDto = new ProductDto();
         outputDto.setId(productId);
@@ -123,8 +120,6 @@ class ProductServiceTest {
         Long productId = 1L;
 
         Product product = new Product();
-        product.setId(productId);
-        product.setStatus(ProductStatus.ACTIVE);
 
         when(productRepository.findById(productId))
                 .thenReturn(Optional.of(product));
@@ -154,7 +149,6 @@ class ProductServiceTest {
         Long productId = 1L;
 
         Product product = new Product();
-        product.setId(productId);
 
         ProductDto productDto = new ProductDto();
         productDto.setId(productId);
@@ -219,7 +213,6 @@ class ProductServiceTest {
         Long productId = 1L;
 
         Product product = new Product();
-        product.setId(productId);
 
         when(productRepository.findById(productId))
                 .thenReturn(Optional.of(product));
