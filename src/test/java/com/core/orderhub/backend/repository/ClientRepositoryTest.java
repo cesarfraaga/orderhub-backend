@@ -1,7 +1,6 @@
 package com.core.orderhub.backend.repository;
 
 import com.core.orderhub.backend.domain.entity.Client;
-import com.core.orderhub.backend.domain.enums.ClientStatus;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -19,9 +18,8 @@ class ClientRepositoryTest {
     void shouldReturnTrueWhenCpfExists() {
 
         Client client = new Client();
+        client.setName("César");
         client.setCpf("12345678910");
-        client.setName("César Fraga");
-        client.setStatus(ClientStatus.ACTIVE);
 
         Client saved = clientRepository.save(client);
         clientRepository.flush();

@@ -37,18 +37,20 @@ class ClientServiceTest {
     void shouldCreateClientSuccessfully() {
 
         ClientDto clientDto = new ClientDto();
+        clientDto.setId(1L);
         clientDto.setName("César Fraga");
         clientDto.setCpf("12345678910");
 
-        Client client = new Client();
+        Client client = Client.builder()
+                .id(1L)
+                .name("César Fraga")
+                .cpf("12345678910")
+                .build();
 
-        Client savedClient = new Client();
-
-        ClientDto responseDto = new ClientDto();
 
         when(clientMapper.toEntity(clientDto)).thenReturn(client);
-        when(clientRepository.save(client)).thenReturn(savedClient);
-        when(clientMapper.toDto(savedClient)).thenReturn(responseDto);
+        when(clientRepository.save(client)).thenReturn(client);
+        when(clientMapper.toDto(client)).thenReturn(clientDto);
 
         ClientDto result = clientService.createClient(clientDto);
 
@@ -59,7 +61,7 @@ class ClientServiceTest {
     }
 
     @Test
-    void shouldThrowResourceConflictExceptionWhenCpfAlreadyExists() {
+    void shouldThrowResourceConflictExceptionWhenCpfAlreadyExists() { //TODO: Remover cenário de teste
 
         ClientDto clientDto = new ClientDto();
         clientDto.setCpf("12345678910");
@@ -79,34 +81,29 @@ class ClientServiceTest {
     void shouldUpdateClientSuccessfully() {
         Long clientId = 1L;
 
-        Client existingClient = new Client();
+        Client client = Client.builder().id(clientId).build();
 
-        ClientDto updateDto = new ClientDto();
-        updateDto.setName("Novo nome");
-        updateDto.setCpf("10987654321");
-
-        Client savedClient = new Client();
-
-        ClientDto outputDto = new ClientDto();
-        outputDto.setId(clientId);
+        ClientDto clientDto = new ClientDto();
+        clientDto.setId(clientId);
+        clientDto.setName("Novo nome");
+        clientDto.setCpf("10987654321");
 
         when(clientRepository.findById(clientId))
-                .thenReturn(Optional.of(existingClient));
+                .thenReturn(Optional.of(client));
 
-        when(clientRepository.save(existingClient))
-                .thenReturn(savedClient);
+        when(clientRepository.existsByCpfAndIdNot(clientDto.getCpf(), clientId))
+                .thenReturn(false);
 
-        when(clientMapper.toDto(savedClient))
-                .thenReturn(outputDto);
+        when(clientMapper.toDto(client))
+                .thenReturn(clientDto);
 
-        ClientDto result = clientService.updateClient(clientId, updateDto);
+        ClientDto result = clientService.updateClient(clientId, clientDto);
 
         assertNotNull(result);
         assertEquals(clientId, result.getId());
-        assertEquals("Novo nome", existingClient.getName());
-        assertEquals("10987654321", existingClient.getCpf());
+        assertEquals("Novo nome", client.getName());
+        assertEquals("10987654321", client.getCpf());
 
-        verify(clientRepository).save(existingClient);
     }
 
     @Test
