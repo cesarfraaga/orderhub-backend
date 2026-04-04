@@ -4,14 +4,15 @@ import com.core.orderhub.backend.domain.enums.ProductStatus;
 import com.core.orderhub.backend.dto.ProductDto;
 import com.core.orderhub.backend.exception.BusinessException;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import java.math.BigDecimal;
 
 @Getter
 @NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name = "products")
 public class Product {
