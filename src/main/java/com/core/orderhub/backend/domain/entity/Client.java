@@ -18,14 +18,22 @@ public class Client {
     @Column(name = "id")
     private Long id;
 
+    @Setter
     @Column(name = "name", nullable = false)
     private String name;
 
+    @Setter
     @Column(name = "cpf", unique = true, nullable = false)
     private String cpf;
 
     @Enumerated(EnumType.STRING)
     private ClientStatus status;
+
+    public Client (String name, String cpf) {
+        this.name = name;
+        this.cpf = cpf;
+        this.status = ClientStatus.ACTIVE;
+    }
 
     public boolean isActive() {
         return this.status == ClientStatus.ACTIVE;
