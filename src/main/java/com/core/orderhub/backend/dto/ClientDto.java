@@ -7,6 +7,7 @@ import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Data
 @NoArgsConstructor
@@ -15,11 +16,13 @@ public class ClientDto {
 
     private Long id;
 
+    @Setter
     @NotBlank(message = "name cannot be null or empty.")
     @Size(min = 2, max = 50, message = "client name cannot be less than 2 or more than 50 characters.")
     @Pattern(regexp = "^[a-zA-ZÀ-ÿ\\s]+$", message = "client name cannot contain special characters.")
     private String name;
 
+    @Setter
     @NotBlank(message = "cpf cannot be null or empty")
     @Pattern(regexp = "\\d{11}", message = "CPF must have exactly 11 digits.")
     private String cpf;
