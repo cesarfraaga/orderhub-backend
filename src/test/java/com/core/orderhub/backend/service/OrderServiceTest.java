@@ -6,7 +6,9 @@ import com.core.orderhub.backend.domain.entity.Product;
 import com.core.orderhub.backend.domain.enums.ClientStatus;
 import com.core.orderhub.backend.domain.enums.OrderStatus;
 import com.core.orderhub.backend.domain.enums.ProductStatus;
+import com.core.orderhub.backend.dto.ClientDto;
 import com.core.orderhub.backend.dto.OrderDto;
+import com.core.orderhub.backend.dto.OrderItemDto;
 import com.core.orderhub.backend.exception.BusinessException;
 import com.core.orderhub.backend.exception.ResourceNotFoundException;
 import com.core.orderhub.backend.mapper.OrderMapper;
@@ -21,6 +23,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -29,17 +33,29 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class OrderServiceTest {
 
-    @Mock private ClientRepository clientRepository;
-    @Mock private OrderRepository orderRepository;
-    @Mock private ProductRepository productRepository;
-    @Mock private OrderMapper orderMapper;
+    @Mock
+    private ClientRepository clientRepository;
 
-    @InjectMocks private OrderService orderService;
+    @Mock
+    private OrderRepository orderRepository;
+
+    @Mock
+    private ProductRepository productRepository;
+
+    @Mock
+    private OrderMapper orderMapper;
+
+    @InjectMocks
+    private OrderService orderService;
 
     private Client activeClient() {
-        Client client = new Client();
-        client.setStatus(ClientStatus.ACTIVE);
+        Client client = new Client("Kaleb", "01234567890");
         return client;
+    }
+
+    private ClientDto activeClientDto() {
+        ClientDto clientDto = new ClientDto(1L, "Kaleb", "01234567890", ClientStatus.ACTIVE);
+        return clientDto;
     }
 
     private Order createdOrder(Long id) {
@@ -48,13 +64,31 @@ class OrderServiceTest {
         return order;
     }
 
-    private Product activeProduct(Long id, int stock, BigDecimal price) {
-        Product product = new Product();
-        product.setId(id);
-        product.setStatus(ProductStatus.ACTIVE);
-        product.setQuantity(stock);
-        product.setPrice(price);
-        return product;
+    private OrderDto createdOrderDto(Long id) {
+        ClientDto clientDto = activeClientDto();
+        OrderDto orderDto = new OrderDto(
+                1L,
+                clientDto.getId(),
+                BigDecimal.valueOf(30.0),
+                LocalDateTime.now(),
+                List.of(
+                        OrderItemDto.builder()
+                                .productId(1L)
+                                .quantity(10)
+                                .productName("Item 1")
+                                .unitPrice(BigDecimal.ONE)
+                                .build()
+                ),
+                OrderStatus.CREATED);
+        ReflectionTestUtils.setField(orderDto, "id", id);
+        return orderDto;
+    }
+
+    private Product activeProduct(int quantity) {
+        return new Product(1L, "Fone de ouvido", BigDecimal.valueOf(30.0),
+                "fone sem fio",
+                quantity,
+                ProductStatus.ACTIVE);
     }
 
     @Test
@@ -91,7 +125,6 @@ class OrderServiceTest {
     @Test
     void shouldThrowWhenClientInactive() {
         Client client = new Client();
-        client.setStatus(ClientStatus.INACTIVE);
 
         when(clientRepository.findById(1L))
                 .thenReturn(Optional.of(client));
@@ -106,20 +139,21 @@ class OrderServiceTest {
         Long productId = 1L;
 
         Order order = createdOrder(orderId);
-        Product product = activeProduct(productId, 10, BigDecimal.valueOf(50));
+        OrderDto orderDto = createdOrderDto(orderId);
+        Product product = activeProduct(10);
 
         when(orderRepository.findById(orderId))
                 .thenReturn(Optional.of(order));
         when(productRepository.findById(productId))
                 .thenReturn(Optional.of(product));
-        when(orderMapper.toDto(any(Order.class)))
-                .thenReturn(mock(OrderDto.class));
+        when(orderMapper.toDto(order))
+                .thenReturn(orderDto);
 
         OrderDto result = orderService.addOrderItem(orderId, productId, 2);
 
         assertNotNull(result);
         assertEquals(1, order.getOrderItemList().size());
-        assertEquals(BigDecimal.valueOf(100), order.getTotal());
+        assertEquals(BigDecimal.valueOf(60.0), order.getTotal());
         assertEquals(8, product.getQuantity());
 
         verify(orderRepository, never()).save(any());
@@ -150,7 +184,7 @@ class OrderServiceTest {
     @Test
     void shouldThrowWhenStockInsufficient() {
         Order order = createdOrder(1L);
-        Product product = activeProduct(1L, 1, BigDecimal.valueOf(50));
+        Product product = activeProduct(1);
 
         when(orderRepository.findById(1L))
                 .thenReturn(Optional.of(order));
@@ -160,13 +194,14 @@ class OrderServiceTest {
         assertThrows(BusinessException.class,
                 () -> orderService.addOrderItem(1L, 1L, 2));
     }
+
     @Test
     void shouldRemoveOrderItemSuccessfully() {
         Long orderId = 1L;
         Long productId = 1L;
 
         Order order = createdOrder(orderId);
-        Product product = activeProduct(productId, 10, BigDecimal.valueOf(50));
+        Product product = activeProduct(10);
 
         order.addItem(product, 2);
 
