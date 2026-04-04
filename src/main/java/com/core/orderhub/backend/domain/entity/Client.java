@@ -2,13 +2,24 @@ package com.core.orderhub.backend.domain.entity;
 
 import com.core.orderhub.backend.domain.enums.ClientStatus;
 import com.core.orderhub.backend.dto.ClientDto;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Getter
+@Builder
+@AllArgsConstructor
 @NoArgsConstructor
+@Getter
 @Entity
 @Table(name = "clients")
 public class Client {
@@ -29,7 +40,7 @@ public class Client {
     @Enumerated(EnumType.STRING)
     private ClientStatus status;
 
-    public Client (String name, String cpf) {
+    public Client(String name, String cpf) {
         this.name = name;
         this.cpf = cpf;
         this.status = ClientStatus.ACTIVE;
