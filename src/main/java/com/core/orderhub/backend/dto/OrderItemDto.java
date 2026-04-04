@@ -2,6 +2,7 @@ package com.core.orderhub.backend.dto;
 
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -9,6 +10,7 @@ import java.math.BigDecimal;
 
 @Getter
 @Setter
+@Builder
 public class OrderItemDto {
 
         @NotNull(message = "product id cannot be null.")

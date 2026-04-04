@@ -1,7 +1,5 @@
 package com.core.orderhub.backend.controller;
 
-import com.core.orderhub.backend.domain.entity.Client;
-import com.core.orderhub.backend.domain.entity.Order;
 import com.core.orderhub.backend.dto.OrderDto;
 import com.core.orderhub.backend.dto.OrderItemDto;
 import com.core.orderhub.backend.exception.ResourceNotFoundException;
@@ -15,6 +13,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -36,13 +35,10 @@ class OrderControllerTest {
 
         Long clientId = 1L;
 
-        Client client = new Client();
-        client.setId(clientId);
-
-        Order order = new Order(client);
-
-        OrderDto orderDto = new OrderDto();
-        orderDto.setId(clientId);
+        OrderDto orderDto = OrderDto.builder()
+                .id(1L)
+                .clientId(clientId)
+                .build();
 
         when(orderService.createOrder(clientId))
                 .thenReturn(orderDto);
@@ -78,19 +74,16 @@ class OrderControllerTest {
     void shouldReturnOrderSuccessfullyOnAddOrderItem() throws Exception {
 
         Long orderId = 1L;
-        Long clientId = 1L;
 
-        Client client = new Client();
-        client.setId(clientId);
+        OrderItemDto orderItemDto = OrderItemDto.builder()
+                .productId(1L)
+                .quantity(5)
+                .build();
 
-        OrderItemDto orderItemDto = new OrderItemDto();
-        orderItemDto.setProductId(1L);
-        orderItemDto.setQuantity(5);
-
-        Order order = new Order(client);
-
-        OrderDto orderDto = new OrderDto();
-        orderDto.setId(orderId);
+        OrderDto orderDto = OrderDto.builder()
+                .id(orderId)
+                .clientId(1L)
+                .build();
 
         when(orderService.addOrderItem(eq(orderId), any(), any()))
                 .thenReturn(orderDto);
@@ -102,5 +95,4 @@ class OrderControllerTest {
 
         verify(orderService).addOrderItem(eq(orderId), any(), any());
     }
-
 }
