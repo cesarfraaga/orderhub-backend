@@ -196,4 +196,4 @@ Projeto desenvolvido para fins de estudo com foco em atuação como Desenvolvedo
 
 Este projeto segue versionamento semântico.
 
-Versão atual: v1.0.0
+Versão atual: v1.1.0
